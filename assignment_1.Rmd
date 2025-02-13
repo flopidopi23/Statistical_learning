@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(OpenImageR)
+library(EBImage)
+library(grid)
 ```
 
 
@@ -41,11 +43,7 @@ head(dos)
 
 data = rbind(uno,dos)
 ```
-
-
-# PCA
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
 red = Im[,,1]
 green=Im[,,2]
 blue=Im[,,3]
@@ -58,7 +56,12 @@ column_means = function(X) {
   n = nrow(X)  # Number of rows (observations)
   return(apply(X, 2, sum) / n)  # Sum each column and divide by n
 }
+```
 
+
+# PCA
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 
 ### PCA
 ## Calculate Covariance Matrix
@@ -93,6 +96,21 @@ dev.new()
 print(imageShow(pc1_image))
 ```
 
+```{r}
+
+
+### Verify with library
+out = princomp(X)
+
+pc1 = matrix(out$scores[,1],nrow=nrow(red), ncol=ncol(green))
+imageShow(pc1)
+
+pc2 = matrix(out$scores[,2],nrow=nrow(red), ncol=ncol(green))
+imageShow(pc2)
+
+pc3 = matrix(out$scores[,3],nrow=nrow(red), ncol=ncol(green))
+imageShow(pc3)
+```
 
 
 
