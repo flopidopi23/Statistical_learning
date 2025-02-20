@@ -46,7 +46,7 @@ eig_vec_sorted <- eig_vec[, sort_index]
 
 ## Calculate Principal Components & print
 pc1 = X_centered %*% eig_vec_sorted[,1]
-pc1_image = matrix(-pc1,nrow=nrow(red), ncol=ncol(green)) #### sign change WHY ?
+pc1_image = matrix(pc1,nrow=nrow(red), ncol=ncol(green)) #### sign change WHY ?
 
 pc2 = X_centered %*% eig_vec_sorted[,2]
 pc2_image = matrix(pc2,nrow=nrow(red), ncol=ncol(green))
@@ -66,6 +66,8 @@ out = princomp(X)
 pc1_package = matrix(out$scores[,1],nrow=nrow(red), ncol=ncol(green))
 pc2_package = matrix(out$scores[,2],nrow=nrow(red), ncol=ncol(green))
 pc3_package = matrix(out$scores[,3],nrow=nrow(red), ncol=ncol(green))
+
+imageShow(t(pc1_package))
 
 cor(pc1, out$scores[,1])
 cor(pc2, out$scores[,2])
