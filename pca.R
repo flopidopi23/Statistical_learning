@@ -3,7 +3,7 @@ rm(list = ls())
 gc()
 
 
-
+library(OpenImageR)
 ### Get Data
 Im = readImage("Training/1AT.jpg")
 
@@ -25,7 +25,7 @@ column_means = function(X) {
 
 n = nrow(X)
 mu = colMeans(X)
-
+mu
 # center
 X_centered = sweep(X, 2, mu, FUN = "-")
 
@@ -37,6 +37,7 @@ cov_matrix = (t(X_centered) %*% X_centered) / (n - 1)
 eig = eigen(cov_matrix)
 eig_val = eig$values
 eig_vec = eig$vectors
+sum.eigen = sum(eig_val)
 
 # sort
 sort_index <- order(eig_val, decreasing = TRUE)
