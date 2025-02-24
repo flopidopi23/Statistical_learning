@@ -205,11 +205,23 @@ print(paste("Person_ID:", prediction))
 
 ## Apply funcionts
 
+
+Assignment 1
 raw_data -> KNN
 raw_data -> PCA -> KNN
-raw_data -> PCA -> DiscrAnal -> KNN
 
+Steps:
+1. Intra Class distances (same person) -> Visualize resulting histograms
+2. Between Class distances (different persons) 
+3. Set Threshold between Distance BetweeenClasses and Distance InterClass
+4. Use difference Distances
+5. Use PCA 
 
+Assignment 2
+1. FDA
+raw_data -> PCA -> DiscrAnal(Fisher Faces) -> KNN
+
+Ass
 
 
 
