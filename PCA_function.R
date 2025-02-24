@@ -26,5 +26,6 @@ PCA.fun = function(X){
   D = eig_val_sorted/sum(eig_val_sorted)
   return(list("Eigen Vector"= eig_vec_sorted,"D"=D))
   }
-test = PCA.fun(ax)
-cumsum(test$D)
+
+#test = PCA.fun(ax)
+#cumsum(test$D)
