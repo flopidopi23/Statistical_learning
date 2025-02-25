@@ -1,6 +1,6 @@
 library(EBImage)  
 library(gtools)   
-
+library(OpenImageR)
 read_all_images <- function(folder_path) {
   image_files <- list.files(folder_path, full.names = TRUE, pattern = "\\.(jpg|png|jpeg|tiff|bmp)$", ignore.case = TRUE)
   
@@ -13,6 +13,17 @@ read_all_images <- function(folder_path) {
     label <- gsub("[^0-9]", "", base_name)  # Extract numeric part
     return(label)
   }
+  read_data <- function(image_path) {
+    img <- readImage(image_path)  
+    red_aux   <- as.vector(img[,,1])
+    green_aux <- as.vector(img[,,2])
+    blue_aux  <- as.vector(img[,,3])
+    
+    # Combine all channels into a single row
+    img_vector <- c(red_aux, green_aux, blue_aux)
+    
+    return(as.data.frame(t(img_vector)))  # Transpose to make it a row
+  }
   
   image_list <- lapply(image_files, function(file) {
     img_data <- read_data(file)  
@@ -24,5 +35,8 @@ read_all_images <- function(folder_path) {
   return(ax)
 }
 
-folder_path <- "Training"#"C:/Users/flore/Desktop/git/Statistical_learning/Training"
+folder_path <- "C:/Users/flore/Desktop/git/Statistical_learning/Training"
 ax <- read_all_images(folder_path)
+
+
+
