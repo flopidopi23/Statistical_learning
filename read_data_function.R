@@ -35,7 +35,7 @@ read_all_images <- function(folder_path) {
   return(ax)
 }
 
-folder_path <- "C:/Users/flore/Desktop/git/Statistical_learning/Training"
+folder_path <- "Training"
 ax <- read_all_images(folder_path)
 
 
