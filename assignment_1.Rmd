@@ -45,8 +45,10 @@ source("read_data_function.R")
 # Data Import and Preprocessing 
 
 ```{r}
-folder_path = "Training"
+folder_path = "Training_alpha"
 data = read_all_images(folder_path)
+data_matriz = as.matrix(data)
+
 ```
 
 
@@ -76,7 +78,6 @@ imageShow(pc3)
 ### Make Matrix
 
 ```{r}
-data_matriz = as.matrix(data)
 ```
 
 
@@ -192,6 +193,7 @@ train_test_split <- function(data, train_ratio = 0.8, seed = NULL) {
 split_data <- train_test_split(data = data_matriz, train_ratio = 0.8, seed = NULL)
 train_data <- split_data$train
 test_data <- split_data$test
+test_data[,ncol(test_data)]
 ```
 
 
@@ -202,17 +204,17 @@ test_data <- split_data$test
 ```{r}
 ### Set up Thresholds
 
-train_data_ids <- unique(train_data[, ncol(train_data)])
+train_data_ids_unique <- unique(train_data[, ncol(train_data)])
 
 # precentile threshold function
-estimate_threshold_via_percentile <- function(data, train_labels, percentile = 0.95) {
+estimate_threshold_via_percentile <- function(data, train_labels, percentile = 0.90) {
   dist_1 <- as.matrix(dist(data))
   threshold <- quantile(dist_1[upper.tri(dist_1)], percentile)
   return(threshold)
 }
 
-treshholds = list()
-for (id in train_data_ids){ # for each id
+treshholds = numeric()
+for (id in train_data_ids_unique){ # for each id
   train_data_grouped <- train_data[train_data[, ncol(train_data)] == id, , drop = FALSE]
   treshholds[id] <- estimate_threshold_via_percentile(train_data_grouped) 
 }
@@ -221,43 +223,52 @@ for (id in train_data_ids){ # for each id
 
 
 ```{r}
-# generate distances between test and train data
+# Generate distances between test and train data
 distance_list = list()
+
 for (i in 1:nrow(test_data)) {
+  
+  print("\n\n\n")
+  train_data_ids <- train_data[, ncol(train_data)]  # Extract ID column
   test_row <- test_data[i, -ncol(test_data), drop = FALSE]
+  test_id <- test_data[i, ncol(test_data), drop = FALSE]  # Get test sample ID
+  
   train_data_no_last_col <- train_data[, -ncol(train_data), drop = FALSE]
   combined_data <- rbind(test_row, train_data_no_last_col)
-  
-  distance_matrix <- as.matrix(dist(combined_data)) #### EXTREMLY INEFFICIENT
-  distances <- distance_matrix[1, -1] 
-  
-  # Store distances using test_data ID as key
-  test_id <- test_data[1, ncol(test_data)]
-  #names(distances) <- train_data$id  # Assign names to match training IDs
-  distance_list[[as.character(test_id)]] <- distances
 
+  distance_matrix <- as.matrix(dist(combined_data))  
+  distances <- distance_matrix[1, -1]  # Extract first row distances
+  
+  names(distances) <- train_data_ids  # Assign train IDs as names
+
+  # Check if the test sample belongs to any known group
+  k <- 5
+  predicted_label <- "0"  # Default label if no match
+
+  for (train_ids in unique(names(distances))) {  
+    if (any(distances[names(distances) == train_ids] < treshholds[train_ids])) { 
+      print("go")
+      
+      k_neighbors <- order(distances)[1:min(k, length(distances))]  # Prevent errors if k > available distances
+      neighbor_labels <- train_data_ids[k_neighbors]  # Get labels of k-nearest neighbors
+      
+      # Predict most frequent label
+      predicted_label <- names(sort(table(neighbor_labels), decreasing = TRUE))[1]
+      print(paste("Result, True:",test_id, "Assigned:",predicted_label))
+      break  # Stop once a group match is found
+    }
+  }
+  if (predicted_label == "0") {
+    print(paste("Result, True:",test_id, "Assigned:",predicted_label))
+  }
 }
+
+
 ```
 
 
 ```{r}
-# check if in group and if so, run knn
-k = 10
-for (id in as.numeric(names( ))){
-  print(id)
-  id_string = paste(strsplit(as.character(id), NULL)[[1]], collapse = "")
-  print(id_string)
-  if (any(distances < treshholds[id_string])){
-      k_neighbors <- order(distances)[1:k]
-      neighbor_labels <- train_data_ids[k_neighbors] # get labels of neighbors
-      predicted_label <- names(sort(table(neighbor_labels), decreasing = TRUE))[1] # make frequency table and pick most frequent 
-      predicted_label <- names(sort(table(neighbor_labels), decreasing = TRUE))[1]
-      break
-  }
-  else{
-    predicted_label <- "0"
-  }
-}
+
 ```
 
 ```{r}
@@ -305,6 +316,7 @@ for (id in train_data_ids){ # for each id
   
 }
 
+traceback()
 
 
 ```
