@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(OpenImageR)
 library(EBImage)
 library(grid)
+library(ggplot2)
+
 ```
 
 # Notes and Teach inputs
@@ -71,10 +73,67 @@ imageShow(pc3)
 
 ## KNN
 
+### Make Matrix
+
 ```{r}
-# TODO: Histograms of distances
+data_matriz = as.matrix(data)
 ```
 
+
+### Set Up Data
+
+
+```{r}
+
+distance_distributions <- function(data, distance_metric="euclidean"){
+  
+  ids <- data[, ncol(my_matrix)]
+  
+  # set up distance matrix/data frame
+  dist_matrix <- as.matrix(dist(data[, -ncol(data)], method = distance_metric))
+  dist_df <- data.frame(
+    row1 = rep(1:nrow(data), each = nrow(data)),
+    row2 = rep(1:nrow(data), times = nrow(data)),
+    distance = as.vector(dist_matrix)
+  )
+  dist_df <- dist_df[dist_df$row1 != dist_df$row2, ] # remove self distances
+  
+  dist_df$id1 <- ids[dist_df$row1] # Assign IDs
+  dist_df$id2 <- ids[dist_df$row2]
+  
+  dist_df_same_id <- dist_df[dist_df$id1 == dist_df$id2, ] # In group distances
+  dist_df_same_id <- dist_df_same_id[order(dist_df_same_id$id1), ]
+  
+  
+  dist_df_diff_id <- dist_df[dist_df$id1 != dist_df$id2, ] # Outside group distances
+  
+  dist_df_diff_id$id1 = 0
+  dist_df_diff_id$id2 = 0
+  
+  dist_df_split <- rbind(dist_df_same_id,dist_df_diff_id)
+  
+  
+  # Plot histogram
+  plot = ggplot(dist_df_split, aes(x = distance, fill = factor(id1))) +
+    geom_density(alpha = 0.6, position = "identity") +
+    labs(title = "Histogram of Pairwise Distances by ID",
+         x = "Distance", y = "Frequency", fill = "ID Group") +
+    theme_minimal()
+  
+  return(plot)
+    
+}
+
+```
+
+```{r}
+# Run
+for (distance_metric in c("euclidean", "manhattan")) {
+  hist = distance_distributions(data_matriz, distance_metric = distance_metric)
+  print(hist)
+}
+
+```
 
 ### Set Up Threshold Functions
 
@@ -95,26 +154,171 @@ estimate_threshold_percentile <- function(train_data, train_labels, percentile =
 
 ```{r}
 # TODO: Metrics
+score <- function(true_labels, predicted_labels) {
+  # Binary Classification Accuracy (In or not In DB)
+  
+  # TODO: ROC Curve
+  # TODO: True Pos Rate
+  # TODO: False Negative rate
+  
+  # Classification of Face ID
+  mean(true_labels == predicted_labels)
+  
+  return()
+}
 ```
 
 ### Test/Train Split
 
 ```{r}
 # TODO: Test/Train Split
+
+train_test_split <- function(data, train_ratio = 0.8, seed = NULL) {
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
+  # Split
+  n = nrow(data)
+  train_indices <- sample(1:n, size = floor(train_ratio * n))
+  train_data <- data[train_indices, , drop = FALSE]  # Train set
+  test_data <- data[-train_indices, , drop = FALSE]  # Test set
+  
+  return(list(train = train_data, test = test_data))
+}
+```
+
+
+```{r}
+split_data <- train_test_split(data = data_matriz, train_ratio = 0.8, seed = NULL)
+train_data <- split_data$train
+test_data <- split_data$test
 ```
 
 
 ### Var1: Groupwise distance thrashhold
+
+
+
+```{r}
+### Set up Thresholds
+
+train_data_ids <- unique(train_data[, ncol(train_data)])
+
+# precentile threshold function
+estimate_threshold_via_percentile <- function(data, train_labels, percentile = 0.95) {
+  dist_1 <- as.matrix(dist(data))
+  threshold <- quantile(dist_1[upper.tri(dist_1)], percentile)
+  return(threshold)
+}
+
+treshholds = list()
+for (id in train_data_ids){ # for each id
+  train_data_grouped <- train_data[train_data[, ncol(train_data)] == id, , drop = FALSE]
+  treshholds[id] <- estimate_threshold_via_percentile(train_data_grouped) 
+}
+
+```
+
+
+```{r}
+# generate distances between test and train data
+distance_list = list()
+for (i in 1:nrow(test_data)) {
+  test_row <- test_data[i, -ncol(test_data), drop = FALSE]
+  train_data_no_last_col <- train_data[, -ncol(train_data), drop = FALSE]
+  combined_data <- rbind(test_row, train_data_no_last_col)
+  
+  distance_matrix <- as.matrix(dist(combined_data)) #### EXTREMLY INEFFICIENT
+  distances <- distance_matrix[1, -1] 
+  
+  # Store distances using test_data ID as key
+  test_id <- test_data[1, ncol(test_data)]
+  #names(distances) <- train_data$id  # Assign names to match training IDs
+  distance_list[[as.character(test_id)]] <- distances
+
+}
+```
+
+
+```{r}
+# check if in group and if so, run knn
+k = 10
+for (id in as.numeric(names( ))){
+  print(id)
+  id_string = paste(strsplit(as.character(id), NULL)[[1]], collapse = "")
+  print(id_string)
+  if (any(distances < treshholds[id_string])){
+      k_neighbors <- order(distances)[1:k]
+      neighbor_labels <- train_data_ids[k_neighbors] # get labels of neighbors
+      predicted_label <- names(sort(table(neighbor_labels), decreasing = TRUE))[1] # make frequency table and pick most frequent 
+      predicted_label <- names(sort(table(neighbor_labels), decreasing = TRUE))[1]
+      break
+  }
+  else{
+    predicted_label <- "0"
+  }
+}
+```
+
+```{r}
+avg_distance <- mean(distances[k_neighbors])
+predictions <- c(predictions, predicted_label)
+
+}
+
+# Check if distance threshold is passed for any group 
+if (avg_distance > threshold) {
+  predicted_label <- "0"
+} else {
+  # Run KNN for all groups where threshhol was passed  
+  # TODO: Set K
+
+}
+```
+
+
+```{r}
+for (id in train_data_ids){ # for each id
+  train_data_id <- train_data[train_data[, ncol(train_data)] == id, , drop = FALSE]
+  
+  # get average distances within id group
+  pairwise_distances <- as.vector(dist(train_data_id[, -ncol(train_data_id)]))
+  avg_distance <- mean(distances[k_neighbors])
+
+  for (i in 1:nrow(train_data_id)){
+    distances <- as.matrix(dist(rbind(test_data[i, ], train_data_id)))[1, -1]
+    
+    predictions <- c(predictions, predicted_label)
+  }
+  
+  # Check if distance threshold is passed for any group 
+  if (avg_distance > threshold) {
+    predicted_label <- "0"
+  } else {
+    # Run KNN for all groups where threshhol was passed  
+    # TODO: Set K
+    k_neighbors <- order(distances)[1:k]
+    neighbor_labels <- train_labels[k_neighbors] # get labels of neighbors
+    predicted_label <- names(sort(table(neighbor_labels), decreasing = TRUE))[1] # make frequency table and pick most frequent 
+    predicted_label <- names(sort(table(neighbor_labels), decreasing = TRUE))[1]
+  }
+  
+}
+
+
+
+```
+
+
 ```{r}
 
 ### KNN Groupwise Algo
-knn_groupwise <- function(train_data, train_labels, test_data, k, threshold) {
+knn_groupwise <- function(data_train, data_test, k, threshold) {
   
   # get intergroup distances for each group
   for (i in 1:nrow(test_data)) {
     
-    distances <- as.matrix(dist(rbind(test_data[i, ], train_data)))[1, -1]
-    # Check treshhold for class 0
+    distances <- as.matrix(dist(rbind(test_data[i, ], data_train)))[1, -1]
     avg_distance <- mean(distances[k_neighbors])
     
     predictions <- c(predictions, predicted_label)
@@ -134,7 +338,25 @@ knn_groupwise <- function(train_data, train_labels, test_data, k, threshold) {
   
   return(predictions)
 }
+
 ```
+
+
+
+
+
+```{r}
+
+# Compute threshold
+threshold <- estimate_threshold_percentile(train_data, train_labels,percentile= 0.90)
+print(threshold)
+
+k <- 4  # Choose k value
+prediction <- knn_manual(train_data, train_labels, test_data, k,threshold=threshold)
+
+print(paste("Person_ID:", prediction))
+```
+
 
 
 ### Var2: Population Based
@@ -168,25 +390,8 @@ knn_pop <- function(train_data, train_labels, test_data, k, threshold) {
 
 ```
 
-### Run KNN
+### Run best KNN
 ```{r}
-# TODOS: 
-# 1. Groupwise for with/without PCA, with different Threshholds
-# 2. Population Based for with/without PCA, with different Threshholds
-
-
-test_image <- load_and_flatten("Test_alpha/20BT.jpg")  # Load & flatten test image
-test_data <- matrix(test_image, nrow = 1)  # Ensure test data format
-
-
-# Compute threshold
-threshold <- estimate_threshold_percentile(train_data, train_labels,percentile= 0.90)
-print(threshold)
-
-k <- 4  # Choose k value
-prediction <- knn_manual(train_data, train_labels, test_data, k,threshold=threshold)
-
-print(paste("Person_ID:", prediction))
 
 ```
 
