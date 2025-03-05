@@ -73,15 +73,11 @@ data_matriz = as.matrix(data)
 ```
 
 
-## KNN
-
-### Make Matrix
-
-```{r}
-```
 
 
-### Set Up Data
+
+
+### Distance Histograms
 
 
 ```{r}
@@ -136,6 +132,7 @@ for (distance_metric in c("euclidean", "manhattan")) {
 
 ```
 
+## KNN Pipeline
 
 ### Test/Train Split
 
@@ -275,15 +272,21 @@ score_binary <- function(df) {
   library(caret)
   library(pROC)
   
+  # factorize
+  df$true = factor(df$true, levels = c(0, 1))
+  df$predicted = factor(df$predicted, levels = c(0, 1))
+
+  
   # confusion with case of only values either 1 or 0
-  unique_vals <- unique(c(df$True, df$Predicted))
+  unique_vals <- unique(c(df$true, df$predicted))
+  print(unique_vals)
   if (all(unique_vals == 1) | all(unique_vals == 0)){
     print("Perfect Classification, match rate 100 %")
     return(type2_error = 0)
   } else {
-    conf_matrix <- table(df$True, df$Predicted)
+    conf_matrix <- table(df$true, df$predicted)
   }
-
+  
   # Extract values
   TP <- conf_matrix[2, 2]  
   TN <- conf_matrix[1, 1]  
@@ -291,23 +294,13 @@ score_binary <- function(df) {
   FN <- conf_matrix[2, 1]
   
   # Compute Metrics
-  accuracy <- (TP + TN) / sum(conf_matrix)
-  precision <- TP / (TP + FP)
-  
-  sensitivity() <- TP / (TP + FN)  
-  specificity <- TN / (TN + FP)
-
   type1_error <- FP / (FP + TN)
   type2_error <- FN / (FN + TP)
   
   # Print Metrics
-  cat("Accuracy:", accuracy, "\n")
-  cat("Precision:", precision, "\n")
-  cat("Sensitivity:", sensetivity, "\n")
-  cat("Specificity:", specificity, "\n")
   cat("Type I Error Rate (False Positive Rate):", type1_error, "\n")
   cat("Type II Error Rate (False Negative Rate):", type2_error, "\n")
-  
+
   return(type2_error)
 }
 ```
@@ -345,6 +338,7 @@ classification_pipeline <- function(train_data,
   
   # Derive binary classification [0,1] (if in data set)
   df_classification_binary <- as.data.frame(lapply(df_classification, function(x) ifelse(x == 0, 0, 1)))
+  
   # Calculate score
   type2_error <- score_binary(df_classification_binary)
   
@@ -356,7 +350,10 @@ classification_pipeline <- function(train_data,
   ))
 }
 
-  
+```
+
+
+```{r}
 # Split the data
 split_data <- train_test_split(data = data_matriz, train_ratio = 0.8, seed = NULL)
 train_data <- split_data$train
@@ -365,6 +362,9 @@ test_data <- split_data$test
 results <- classification_pipeline(train_data,test_data)
 print(results$classification)
 print(results$type2_error)
+```
+```{r}
+score_binary(results$classification_binary)
 
 
 ```
