@@ -13,6 +13,8 @@ library(OpenImageR)
 library(EBImage)
 library(grid)
 library(ggplot2)
+library(caret)
+library(pROC)
 
 ```
 
@@ -53,10 +55,6 @@ data_matriz = as.matrix(data)
 
 
 # PCA
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-
-```
 
 ```{r}
 ### Verify with library
@@ -132,7 +130,7 @@ for (distance_metric in c("euclidean", "manhattan")) {
 
 ```
 
-## KNN Pipeline
+## Functions
 
 ### Test/Train Split
 
@@ -147,15 +145,12 @@ train_test_split <- function(data, train_ratio = 0.8, seed = NULL) {
   train_indices <- sample(1:n, size = floor(train_ratio * n))
   train_data <- data[train_indices, , drop = FALSE]  # Train set
   test_data <- data[-train_indices, , drop = FALSE]  # Test set
-  
-  
-  
+
   return(list(train = train_data, test = test_data))
 }
 ```
 
-### Var1: Groupwise distance thrashhold
-
+### KNN 
 
 ```{r}
 ### Distances
@@ -201,9 +196,7 @@ estimate_thresholds <- function(train_data, estimate_func) {
 
 
 ```{r}
-
-
-# KNN Classifier
+### KNN Classifier
 knn_classifier = function(test_data, train_data, thresholds, dist_metric = "euclidean", k){
   # init results array
   predicted_ids = c() 
@@ -263,28 +256,30 @@ knn_classifier = function(test_data, train_data, thresholds, dist_metric = "eucl
 ```
 
 
-
-## Scoring
-
-### Score [0,1] classification
 ```{r}
-score_binary <- function(df) {
-  library(caret)
-  library(pROC)
+### Scoring
+score <- function(df_id,df_binary) {
   
+  ### ID Classification Scoring
+  
+  # match & fail rate 
+  match_rate <- mean(df_id$true == df_id$predicted)
+  fail_rate <- 1 - match_rate
+  
+  ### Binary Classification Scoring
   # factorize
-  df$true = factor(df$true, levels = c(0, 1))
-  df$predicted = factor(df$predicted, levels = c(0, 1))
+  df_binary$true = factor(df_binary$true, levels = c(0, 1))
+  df_binary$predicted = factor(df_binary$predicted, levels = c(0, 1))
 
-  
   # confusion with case of only values either 1 or 0
-  unique_vals <- unique(c(df$true, df$predicted))
-  print(unique_vals)
+  unique_vals <- unique(c(df_binary$true, df_binary$predicted))
   if (all(unique_vals == 1) | all(unique_vals == 0)){
-    print("Perfect Classification, match rate 100 %")
-    return(type2_error = 0)
+    return(list(binary_false_positive_rate = 0, 
+              binary_false_negative_rate = 0,
+              classification_match_rate = match_rate,
+              classification_fail_rate = fail_rate))
   } else {
-    conf_matrix <- table(df$true, df$predicted)
+    conf_matrix <- table(df_binary$true, df_binary$predicted)
   }
   
   # Extract values
@@ -294,26 +289,25 @@ score_binary <- function(df) {
   FN <- conf_matrix[2, 1]
   
   # Compute Metrics
-  type1_error <- FP / (FP + TN)
-  type2_error <- FN / (FN + TP)
+  type1_error <- ifelse((FP + TN) == 0, 0, FP / (FP + TN))
+  type2_error <- ifelse((FN + TP) == 0, 0, FN / (FN + TP))
   
-  # Print Metrics
-  cat("Type I Error Rate (False Positive Rate):", type1_error, "\n")
-  cat("Type II Error Rate (False Negative Rate):", type2_error, "\n")
-
-  return(type2_error)
+  
+  return(list(binary_false_positive_rate = type1_error, 
+              binary_false_negative_rate = type2_error,
+              classification_match_rate = match_rate,
+              classification_fail_rate = fail_rate))
 }
 ```
 
-## Set up Knn Pipeline
 
 ```{r}
+### Pipeline
 classification_pipeline <- function(train_data,
                                     test_data,
                                     estimate_func = estimate_threshold_via_percentile,
                                     knn_k = 5,
                                     dist_metric = "euclidean") {
-
   
   # Replace IDs in test_data that are not in train_data with "0"
   train_ids <- train_data[, ncol(train_data)]
@@ -340,18 +334,127 @@ classification_pipeline <- function(train_data,
   df_classification_binary <- as.data.frame(lapply(df_classification, function(x) ifelse(x == 0, 0, 1)))
   
   # Calculate score
-  type2_error <- score_binary(df_classification_binary)
+  scores <- score(df_id = df_classification, df_binary = df_classification_binary)
   
   # Return results
   return(list(
     classification = df_classification,
     classification_binary = df_classification_binary,
-    type2_error = type2_error
+    binary_false_positive_rate = scores$binary_false_positive_rate, 
+    binary_false_negative_rate = scores$binary_false_negative_rate,
+    classification_match_rate = scores$classification_match_rate,
+    classification_fail_rate = scores$classification_fail_rate
   ))
 }
 
 ```
 
+
+
+
+```{r}
+### K fold Cross Validation
+
+knn_k_fold_cv <- function(data, k_CV = 5) {
+  # Create the K-fold
+  folds <- sample(1:k_CV, nrow(data), replace = TRUE)
+  all_results <- list()
+
+  # Perform K-fold cross-validation
+  for(i in 1:k_CV) {
+    # Split data into training and testing sets based on the fold
+    train_data <- data[folds != i, ]
+    test_data <- data[folds == i, ]
+    
+    # Run the classification pipeline
+    results <- classification_pipeline(train_data, test_data)
+    
+    # Store results for this fold
+    all_results[[i]] <- list(
+      binary_false_positive_rate = results$binary_false_positive_rate,
+      binary_false_negative_rate = results$binary_false_negative_rate,
+      classification_match_rate = results$classification_match_rate,
+      classification_fail_rate = results$classification_fail_rate
+    )
+  }
+  
+  # Store means
+  binary_false_positive_rate_mean <- mean(sapply(all_results, function(x) x$binary_false_positive_rate))
+  binary_false_negative_rate_mean <- mean(sapply(all_results, function(x) x$binary_false_negative_rate))
+  classification_match_rate_mean <- mean(sapply(all_results, function(x) x$classification_match_rate))
+  classification_fail_rate_mean <- mean(sapply(all_results, function(x) x$classification_fail_rate))
+
+  avg_scores = list(binary_false_positive_rate_mean = binary_false_positive_rate_mean,
+                     binary_false_negative_rate_mean = binary_false_negative_rate_mean,
+                     classification_match_rate_mean = classification_match_rate_mean,
+                     classification_fail_rate_mean = classification_fail_rate_mean)
+  
+  # Print all average metrics
+  print("Average scores across all folds:")
+  print(avg_scores)
+  return(c(avg_scores=avg_scores, scores_by_fold=all_results))
+}
+
+# Example of using the function
+#results <- k_fold_cv(data_matriz, k_CV = 4)
+```
+
+
+## Run KNN
+
+### Run KNN on PCA Data
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+# Run PCA
+pca_result <- PCA.fun(data)
+
+# Get results and get PC's that explain 95% Variance
+eig_vecs <- pca_result$"Eigen Vector"
+cumulative_variance <- cumsum(pca_result$D)
+num_components <- which(cumulative_variance >= 0.95)[1]
+
+# Project data onto selected PCs
+data_reduced <- as.matrix(data %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components]
+
+```
+
+
+```{r}
+# data test/train split
+labels <- data$Label  
+train_idx <- sample(1:nrow(data_reduced), 0.8 * nrow(data_reduced)) 
+train_data_pca <- cbind(data_reduced[train_idx, ],labels[train_idx])
+test_data_pca <- cbind(data_reduced[-train_idx, ],labels[-train_idx])
+
+data_reduced_labeled = cbind(data_reduced,labels)
+```
+
+
+```{r}
+results <- classification_pipeline(train_data,test_data)
+#print(results$classification)
+#print(results$classification_binary)
+```
+
+```{r}
+# score
+scores = score(results$classification,results$classification_binary)
+scores
+```
+```{r}
+CV_pca_results = knn_k_fold_cv(data_reduced_labeled, k_CV = 5)
+```
+
+
+
+## Run KNN on Raw Data
+
+
+```{r}
+CV_pca_results = knn_k_fold_cv(data_matriz, k_CV = 5)
+```
 
 ```{r}
 # Split the data
@@ -361,48 +464,13 @@ test_data <- split_data$test
 
 results <- classification_pipeline(train_data,test_data)
 print(results$classification)
+print(results$classification_binary)
+
 print(results$type2_error)
 ```
-```{r}
-score_binary(results$classification_binary)
-
-
-```
 
 
 
-```{r}
-k_fold_cv <- function(data_matriz, k_CV = 5) {
-  # Create the K-folds
-  folds <- sample(1:k_CV, nrow(data_matriz), replace = TRUE)
-  all_results <- list()
-
-  # Perform K-fold cross-validation
-  for(i in 1:k_CV) {
-    # Split data into training and testing sets based on the fold
-    train_data <- data_matriz[folds != i, ]
-    test_data <- data_matriz[folds == i, ]
-    
-    # Run the classification pipeline
-    results <- classification_pipeline(train_data, test_data)
-    
-    # Store results for this fold
-    all_results[[i]] <- list(
-      classification = results$classification,
-      type2_error = results$type2_error
-    )
-  }
-  
-  # Calculate and return the mean Type 2 Error across all folds
-  avg_type2_error <- mean(sapply(all_results, function(res) res$type2_error))
-  print(paste("Average Type 2 Error across all folds:", avg_type2_error))
-  
-  return(all_results)
-}
-
-# Example of using the function
-results <- k_fold_cv(data_matriz, k_CV = 4)
-```
 
 
 
@@ -427,55 +495,24 @@ results <- k_fold_cv(data_matriz, k_CV = 4)
 
 
 ```{r}
-score_confusion_matrix <- function(df_classification){
-  # True Positive Rate (TPR) & False Negative Rate (FNR)
-  confusion_matrix <- table(df_classification$true, df_classification$predicted)
-  
-  rows <- rownames(confusion_matrix)
-  cols <- colnames(confusion_matrix)
-  common_indices <- intersect(rows, cols)
-  
-  TP <- sum(sapply(common_indices, function(i) confusion_matrix[i, i]))
-  FN <- sum(confusion_matrix)- TP
-  
-  TPR <- TP / (TP + FN)
-  print(paste(TP,FN))
-  FNR <- FN / (TP + FN)
-  
-  # Return TPR and FNR
-  return(c(TPR, FNR))
-}
+
 
 rates = score(df_classification)
 tpr = rates[1]
 fnr = rates[2]
 ```
-```{r}
-# Find the index for "0" in the row names
-row_0_index <- which(rownames(confusion_matrix) == "0")
-
-# Check if row "0" exists
-if(length(row_0_index) > 0) {
-  # Sum all elements in row "0" excluding the diagonal
-  misclassified_0 <- sum(confusion_matrix[row_0_index, ]) - confusion_matrix[row_0_index, row_0_index]
-} else {
-  misclassified_0 <- 0
-}
-
-misclassified_0
 
 
-```
 
-```{r}
 
-df_classification
-# ROC Curve with AUC
-roc_obj <- roc(df_classification$true, df_classification$predicted)
-plot(roc_obj, main = "ROC Curve", col = "blue", lwd = 2)
-abline(a = 0, b = 1, lty = 2, col = "red")
-auc_value <- auc(roc_obj)
-```
+
+
+
+
+
+
+
+
 
 
 
