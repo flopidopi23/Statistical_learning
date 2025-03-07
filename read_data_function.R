@@ -1,3 +1,4 @@
+
 library(EBImage)  
 library(gtools)   
 library(OpenImageR)
@@ -13,6 +14,9 @@ read_all_images <- function(folder_path) {
     label <- gsub("[^0-9]", "", base_name)  # Extract numeric part
     return(label)
   }
+  extract_filename <- function(filepath) {
+    return(basename(filepath))
+  }
   read_data <- function(image_path) {
     img <- readImage(image_path)  
     red_aux   <- as.vector(img[,,1])
@@ -27,7 +31,8 @@ read_all_images <- function(folder_path) {
   
   image_list <- lapply(image_files, function(file) {
     img_data <- read_data(file)  
-    img_data$Label <- extract_label(file)  # Assign label 
+    img_data$Label <- extract_label(file)
+    img_data$ID <- extract_filename(file) 
     return(img_data)
   })
   
