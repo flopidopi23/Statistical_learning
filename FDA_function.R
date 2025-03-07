@@ -66,5 +66,7 @@ FDA.fun <- function(X, labels) {
 # Assume df is your 150x108000 dataframe with labels in the last column
 # df$Label should be a factor or numeric class labels
 
-result <- FDA.fun(aux_data[,1:12], aux_data$Label)
-length(result$D)
+#test = FDA.fun(ax[,1:108000], ax$Label)
+#result <- FDA.fun(aux_data[,1:12], aux_data$Label)
+#result$Projection
+#length(result$D)
