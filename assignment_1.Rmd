@@ -24,6 +24,7 @@ Assignment 1
 raw_data -> KNN
 raw_data -> PCA -> KNN
 
+
 Steps:
 1. Intra Class distances (same person) -> Visualize resulting histograms
 2. Between Class distances (different persons) 
@@ -34,6 +35,35 @@ Steps:
 Assignment 2
 1. FDA
 raw_data -> PCA -> DiscrAnal(Fisher Faces) -> KNN
+
+
+TODOS: 
+- Apply and compare PCA : Flo 
+- Read Image Name into read_data output: Flo
+- CV Classification Hyperparam tuning - Raw Data : Simon
+- CV Classification Hyperparam tuning - PCA Data : Simon
+- Classification Test with Images that are not in Database: Simon
+
+- Apply and interprete FDA (PCA -> FDA): Flo
+- PCA -> FDA -> KNN (Hyperparm): Simon
+
+- Prep Code for prof test data: Simon
+
+- Introduction, Conclusion, make pretty : Simon
+
+
+Notes from Class
+
+Hyperparm tuning
+
+KNN (Dist, k, treshhold)
+PCA - KNN (Dist, k,treshhold, expl var)
+PCA - FDA - KNN (Dist, k, treshhold, expl var, number of fda's)
+
+to avoid computational cost. Take optimal from previous and only optimize new parameter
+JUSTIFY! 
+
+
 
 # Data Import and Preprocessing 
 
@@ -55,6 +85,9 @@ data_matriz = as.matrix(data)
 
 
 # PCA
+
+
+TODO: Make explained Variance plot
 
 ```{r}
 ### Verify with library
@@ -417,7 +450,6 @@ num_components <- which(cumulative_variance >= 0.95)[1]
 
 # Project data onto selected PCs
 data_reduced <- as.matrix(data %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components]
-
 ```
 
 
