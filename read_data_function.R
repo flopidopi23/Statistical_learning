@@ -40,8 +40,8 @@ read_all_images <- function(folder_path) {
   return(ax)
 }
 
-folder_path <- "Training_alpha"
-ax <- read_all_images(folder_path)
+#folder_path <- "Training_alpha"
+#ax <- read_all_images(folder_path)
 
 
 

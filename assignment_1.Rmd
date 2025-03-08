@@ -76,43 +76,10 @@ source("read_data_function.R")
 
 # Data Import and Preprocessing 
 
+
+# Distance Histograms
 ```{r}
-folder_path = "Training"
-data = read_all_images(folder_path)
-data_matriz = as.matrix(data)
-
-```
-
-
-# PCA
-
-
-TODO: Make explained Variance plot
-
-```{r}
-### Verify with library
-#out = princomp(X)
-
-#pc1 = matrix(out$scores[,1],nrow=nrow(red), ncol=ncol(green))
-#imageShow(pc1)
-
-#pc2 = matrix(out$scores[,2],nrow=nrow(red), ncol=ncol(green))
-#imageShow(pc2)
-
-#pc3 = matrix(out$scores[,3],nrow=nrow(red), ncol=ncol(green))
-#imageShow(pc3)
-```
-
-
-
-
-
-
 ### Distance Histograms
-
-
-```{r}
-
 distance_distributions <- function(data, distance_metric="euclidean"){
   
   ids <- data[, ncol(data)]
@@ -154,14 +121,32 @@ distance_distributions <- function(data, distance_metric="euclidean"){
 
 ```
 
-```{r}
-# Run
-for (distance_metric in c("euclidean", "manhattan")) {
-  hist = distance_distributions(data_matriz, distance_metric = distance_metric)
-  print(hist)
-}
 
+# PCA
+
+
+TODO: Make explained Variance plot
+
+```{r}
+### Verify with library
+#out = princomp(X)
+
+#pc1 = matrix(out$scores[,1],nrow=nrow(red), ncol=ncol(green))
+#imageShow(pc1)
+
+#pc2 = matrix(out$scores[,2],nrow=nrow(red), ncol=ncol(green))
+#imageShow(pc2)
+
+#pc3 = matrix(out$scores[,3],nrow=nrow(red), ncol=ncol(green))
+#imageShow(pc3)
 ```
+
+
+
+
+
+
+
 
 ## Functions
 
@@ -212,14 +197,14 @@ estimate_threshold_via_percentile <- function(data, percentile = 0.90) {
 }
 
 ## generate Treshhold functions
-estimate_thresholds <- function(train_data, estimate_func) {
+estimate_thresholds <- function(train_data, estimate_func, percentile) {
   thresholds <- numeric()
   train_data_ids_unique <- unique(train_data[, ncol(train_data)])
   
   for (id in train_data_ids_unique) {
     train_data_grouped <- train_data[train_data[, ncol(train_data)] == id, , drop = FALSE]
     if (nrow(train_data_grouped) > 1) {
-      thresholds[id] <- estimate_func(train_data_grouped)
+      thresholds[id] <- estimate_func(train_data_grouped,percentile = percentile)
     }
   }
   
@@ -338,9 +323,10 @@ score <- function(df_id,df_binary) {
 ### Pipeline
 classification_pipeline <- function(train_data,
                                     test_data,
-                                    estimate_func = estimate_threshold_via_percentile,
-                                    knn_k = 5,
-                                    dist_metric = "euclidean") {
+                                    estimate_func,
+                                    percentile,
+                                    knn_k,
+                                    dist_metric) {
   
   # Replace IDs in test_data that are not in train_data with "0"
   train_ids <- train_data[, ncol(train_data)]
@@ -348,7 +334,7 @@ classification_pipeline <- function(train_data,
   test_data[, ncol(test_data)][!test_ids %in% train_ids] <- 0
   
   # Estimate thresholds
-  thresholds <- estimate_thresholds(train_data, estimate_func = estimate_func)
+  thresholds <- estimate_thresholds(train_data, estimate_func = estimate_func, percentile = percentile)
   
   # Prepare test data
   true_test_ids <- c(test_data[, ncol(test_data), drop = FALSE])
@@ -387,12 +373,16 @@ classification_pipeline <- function(train_data,
 
 ```{r}
 ### K fold Cross Validation
+knn_k_fold_cv <- function(data,
+                          folds,
+                          k_CV,
+                          estimate_func, 
+                          percentile, 
+                          knn_k, 
+                          dist_metric,
+                          print_bool = F) {
 
-knn_k_fold_cv <- function(data, k_CV = 5) {
-  # Create the K-fold
-  folds <- sample(1:k_CV, nrow(data), replace = TRUE)
   all_results <- list()
-
   # Perform K-fold cross-validation
   for(i in 1:k_CV) {
     # Split data into training and testing sets based on the fold
@@ -400,7 +390,12 @@ knn_k_fold_cv <- function(data, k_CV = 5) {
     test_data <- data[folds == i, ]
     
     # Run the classification pipeline
-    results <- classification_pipeline(train_data, test_data)
+    results <- classification_pipeline(train_data, 
+                                       test_data,
+                                       estimate_func = estimate_func,
+                                       percentile = percentile,
+                                       knn_k = knn_k ,
+                                       dist_metric = dist_metric)
     
     # Store results for this fold
     all_results[[i]] <- list(
@@ -423,9 +418,12 @@ knn_k_fold_cv <- function(data, k_CV = 5) {
                      classification_fail_rate_mean = classification_fail_rate_mean)
   
   # Print all average metrics
-  print("Average scores across all folds:")
-  print(avg_scores)
-  return(c(avg_scores=avg_scores, scores_by_fold=all_results))
+  if (print_bool){
+    print("Average scores across all folds:")
+    print(avg_scores)
+  }
+
+  return(avg_scores)#, scores_by_fold=all_results))
 }
 
 # Example of using the function
@@ -433,14 +431,140 @@ knn_k_fold_cv <- function(data, k_CV = 5) {
 ```
 
 
+```{r}
+CV_grid_search <- function(data, knn_k_values, percentile_values, dist_metrics, k_CV = 5) {
+  # Store results
+  results_list <- list()
+  
+  folds <- sample(1:k_CV, nrow(data), replace = TRUE)
+
+  # Perform grid search
+  for (knn_k in knn_k_values) {
+    for (percentile in percentile_values) {
+      for (dist_metric in dist_metrics) {
+        
+        # Run cross-validation
+        avg_scores <- knn_k_fold_cv(data,
+                                    folds,
+                                    k_CV = k_CV,
+                                    estimate_func = estimate_threshold_via_percentile,
+                                    percentile = percentile,
+                                    knn_k = knn_k,
+                                    dist_metric = dist_metric)
+        
+        # Store results
+        results_list[[paste(knn_k, percentile, dist_metric, sep="_")]] <- list(
+          knn_k = knn_k,
+          percentile = percentile,
+          dist_metric = dist_metric,
+          binary_false_positive_rate_mean = avg_scores$binary_false_positive_rate_mean,
+          binary_false_negative_rate_mean = avg_scores$binary_false_negative_rate_mean,
+          classification_match_rate_mean = avg_scores$classification_match_rate_mean,
+          classification_fail_rate_mean = avg_scores$classification_fail_rate_mean
+        )
+      }
+    }
+  }
+  
+  # Convert results to data frame
+  results_df <- do.call(rbind, lapply(results_list, as.data.frame))
+  
+  # Find the best parameters for threshold and for knn
+  best_params_knn <- results_df[which.max(results_df$classification_match_rate_mean), ]
+  best_params_binary <- results_df[which.min(results_df$binary_false_negative_rate_mean), ]
+  
+  print("#################### Best Hyperparameters ####################")
+  print(paste("Distance Metric: ", best_params_knn$dist_metric))
+  print(paste("Percentile for Quantile Threshold: ", best_params_binary$percentile))
+  print(paste("KNN K nearest neighbors: ", best_params_knn$knn_k))
+
+  return(list(results_df = results_df, 
+              best_params_knn = best_params_knn, 
+              best_params_binary = best_params_binary))
+}
+```
+
+
+```{r}
+### Predict for new data
+create_knn_results <- function(train_data, 
+                               test_data,                               
+                               image_names,
+                               true_ID,
+                               dist_metric,
+                               knn_k,
+                               result, 
+                               estimate_func = estimate_threshold_via_percentile,
+                               percentile = percentile) {
+
+  
+  # Estimate the thresholds using the training data
+  thresholds <- estimate_thresholds(train_data, 
+                                    estimate_func = estimate_func, 
+                                    percentile = percentile)
+  
+  # Apply the KNN classifier to the test data
+  results <- knn_classifier(test_data = test_data[, -ncol(test_data)], 
+                            train_data = train_data, 
+                            thresholds = thresholds, 
+                            dist_metric = dist_metric,
+                            k = knn_k)
+  
+  # Create the final dataframe with predictions
+  final_dataframe <- data.frame(
+    ImageNames = image_names ,
+    predicted = results,
+    true = true_ID
+  )
+  
+  # Score
+  match_rate <- mean(final_dataframe$true == final_dataframe$predicted)
+  fail_rate <- 1 - match_rate
+  
+  print(paste0("Match Rate:",match_rate))
+  print(paste0("Mismatch Rate:", fail_rate))
+
+  
+  # Return result
+  return(final_dataframe)
+}
+```
+
+
+# Run Codes
+
+## Load Data
+```{r}
+folder_path = "Training_alpha"
+data = read_all_images(folder_path)
+
+labels <- data$Label  
+image_names = data$ID
+
+data = data %>% dplyr::select(-ID)
+
+data_matriz = as.matrix(data)
+```
+
+
+## Distance Histograms
+
+```{r}
+# Run
+for (distance_metric in c("euclidean", "manhattan")) {
+  hist = distance_distributions(data_matriz, distance_metric = distance_metric)
+  print(hist)
+}
+
+```
+
 ## Run KNN
 
 ### Run KNN on PCA Data
 
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-
-# Run PCA
+```{r}
+### Run PCA & prep data
 pca_result <- PCA.fun(data)
 
 # Get results and get PC's that explain 95% Variance
@@ -450,38 +574,86 @@ num_components <- which(cumulative_variance >= 0.95)[1]
 
 # Project data onto selected PCs
 data_reduced <- as.matrix(data %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components]
+
+data_reduced_labeled = cbind(data_reduced, labels)
 ```
 
 
 ```{r}
-# data test/train split
-labels <- data$Label  
+set.seed(123)
+### Run grid Search to optimize Hyperparameters
+CV_grid_search_result <- CV_grid_search(data_reduced_labeled,
+                                        k_CV = 5,
+                                        knn_k_values = c(3, 4, 5, 6, 7), 
+                                        percentile_values = c(0.8, 0.9, 0.95, 0.99), 
+                                        dist_metrics = c("euclidean", "manhattan"))
+
+#print(CV_grid_search_result$results_df)
+#print(CV_grid_search_result$best_params_knn)
+#print(CV_grid_search_result$best_params_binary)
+
+```
+
+```{r}
+### Predict for new Data
+
+# Splitting the data into training and test sets
 train_idx <- sample(1:nrow(data_reduced), 0.8 * nrow(data_reduced)) 
-train_data_pca <- cbind(data_reduced[train_idx, ],labels[train_idx])
-test_data_pca <- cbind(data_reduced[-train_idx, ],labels[-train_idx])
+train_data_pca <- cbind(data_reduced[train_idx, ], labels[train_idx])
+test_data_pca <- cbind(data_reduced[-train_idx, ], labels[-train_idx])
 
-data_reduced_labeled = cbind(data_reduced,labels)
+image_names_test = image_names[-train_idx]
+labels_test = labels[-train_idx]
+
+
+results = create_knn_results(train_data = train_data_pca, 
+                               test_data = test_data_pca,
+                              image_names = image_names_test,
+                              true_ID = labels_test,
+                               dist_metric = 'euclidean',
+                               knn_k = 4,
+                               estimate_func = estimate_threshold_via_percentile,
+                               percentile = 0.95)
+
+results
+
 ```
 
 
 ```{r}
-results <- classification_pipeline(train_data,test_data)
-#print(results$classification)
-#print(results$classification_binary)
+### Predict for new Data
+
+#data_train = read_all_images("Training_alpha")
+#data_test = read_all_images("Test_alpha")
+
+image_names_test = data_test$ID
+
+data_train_reduced = data_train %>% dplyr::select(-ID)
+data_test_reduced = data_test %>% dplyr::select(-ID)
+
+data_train_asmatrix = as.matrix(data_train_reduced)
+data_test_asmatrix = as.matrix(data_test_reduced)
+
+labels_test_init = data_test_asmatrix[,ncol(data_test_asmatrix)]
+labels_train = data_train_asmatrix[,ncol(data_train_asmatrix)]
+
+data_test_asmatrix[, ncol(data_test_asmatrix)][!labels_test_init %in% labels_train] <- 0
+labels_test = data_test_asmatrix[,ncol(data_test_asmatrix)]
+
+results = create_knn_results(train_data = data_train_asmatrix, 
+                               test_data = data_test_asmatrix,
+                               image_names = image_names_test,
+                               true_ID = labels_test,
+                               dist_metric = 'euclidean',
+                               knn_k = 6,
+                               estimate_func = estimate_threshold_via_percentile,
+                               percentile = 0.8)
+
+results
 ```
 
-```{r}
-# score
-scores = score(results$classification,results$classification_binary)
-scores
-```
-```{r}
-CV_pca_results = knn_k_fold_cv(data_reduced_labeled, k_CV = 5)
-```
 
-
-
-## Run KNN on Raw Data
+### Run KNN on Raw Data
 
 
 ```{r}
@@ -502,6 +674,7 @@ print(results$type2_error)
 ```
 
 
+### Run KNN on PCA & FDA Data
 
 
 
@@ -525,59 +698,6 @@ print(results$type2_error)
 
 
 
-
-```{r}
-
-
-rates = score(df_classification)
-tpr = rates[1]
-fnr = rates[2]
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Var2: Population Based
-```{r}
-### KNN Population Algo
-knn_pop <- function(train_data, train_labels, test_data, k, threshold) {
-  predictions <- c()
-  
-  ###
-  for (i in 1:nrow(test_data)) {
-    distances <- as.matrix(dist(rbind(test_data[i, ], train_data)))[1, -1]
-    avg_distance <- mean(distances[k_neighbors])
-
-    # Check if Population Threshold is passed
-    if (avg_distance > threshold) {
-      predicted_label <- "0"
-    } else {
-      # Run KNN for all groups
-      # TODO: Optimize K
-      k_neighbors <- order(distances)[1:k]
-      neighbor_labels <- train_labels[k_neighbors] # get labels of neighbors
-      predicted_label <- names(sort(table(neighbor_labels), decreasing = TRUE))[1] # make frequency table and pick most frequent 
-      predicted_label <- names(sort(table(neighbor_labels), decreasing = TRUE))[1]
-    }
-    
-    predictions <- c(predictions, predicted_label)
-  }
-  
-  return(predictions)
-}
-
-```
 
 ### Run best KNN
 ```{r}
@@ -593,11 +713,6 @@ TODO: Discuss Results
 ```
 
 
-# LDS/FDS
-
-```{r}
-# TODO: Linear Discriminant Analysis/Fisher discriminant Analysis
-```
 
 
 

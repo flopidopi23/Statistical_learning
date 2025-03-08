@@ -5,7 +5,7 @@ library(OpenImageR)
 library(dplyr)
 
 PCA.fun = function(X){
-  X = X %>% dplyr::select(-c(Label,ID))
+  X = X %>% dplyr::select(-Label)
   X = as.matrix(X)
   n = nrow(X)
   mu = colMeans(X)
@@ -27,7 +27,7 @@ PCA.fun = function(X){
   return(list("Eigen Vector"= eig_vec_sorted,"D"=D))
   }
 
-test = PCA.fun(ax)
-aux_data = as.data.frame(test)
-aux_data$Label = ax$Label
+#test = PCA.fun(ax)
+#aux_data = as.data.frame(test)
+#aux_data$Label = ax$Label
 #cumsum(test$D)
