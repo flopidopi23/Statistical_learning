@@ -5,7 +5,8 @@ library(OpenImageR)
 library(dplyr)
 
 PCA.fun = function(X){
-  X = X %>% dplyr::select(-Label)
+  X = X %>% dplyr::select(-c("Label","ID"))
+  print(dim(X))
   X = as.matrix(X)
   n = nrow(X)
   mu = colMeans(X)

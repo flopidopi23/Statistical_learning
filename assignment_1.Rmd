@@ -8,14 +8,14 @@ date: "2025-02-12"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r warning=FALSE}
 library(OpenImageR)
 library(EBImage)
 library(grid)
 library(ggplot2)
 library(caret)
 library(pROC)
-
+library(tictoc)
 ```
 
 # Notes and Teach inputs
@@ -67,7 +67,7 @@ JUSTIFY!
 
 # Data Import and Preprocessing 
 
-```{r}
+```{r warning=FALSE}
 # load selfmade functions
 source("PCA_function.R")
 source("read_data_function.R")
@@ -128,6 +128,17 @@ distance_distributions <- function(data, distance_metric="euclidean"){
 TODO: Make explained Variance plot
 
 ```{r}
+folder_path = "Training"
+data_PCA = read_all_images(folder_path)
+print(system.time(PCA.fun(data_PCA)))
+PCA_result = PCA.fun(data_PCA)
+toc("time:")
+cumsum(PCA_result$D)
+data_PC = as.matrix(data_PCA[,1:108000])%*%PCA_result$`Eigen Vector`[,1:40]
+print(system.time(prcomp(as.matrix(data_PCA[,1:108000]),scale. = T)))
+compare_pc = prcomp(as.matrix(data_PCA[,1:108000]),scale. = T)
+print(cumsum(compare_pc$sdev^2)/sum(compare_pc$sdev^2))
+
 ### Verify with library
 #out = princomp(X)
 
@@ -140,11 +151,9 @@ TODO: Make explained Variance plot
 #pc3 = matrix(out$scores[,3],nrow=nrow(red), ncol=ncol(green))
 #imageShow(pc3)
 ```
+If we compare the PCA function we created with prcomp(), we can see a significant difference in execution time and system resource usage. This is because the base function assumes that $n >> p$, but for the type of data we are working with, this approach is less optimal. Instead, we use a function that is optimized for cases where $n <<p$.
 
-
-
-
-
+When comparing the eigenvalues, our custom function required fewer eigenvalues to achieve the same explained variance.
 
 
 
