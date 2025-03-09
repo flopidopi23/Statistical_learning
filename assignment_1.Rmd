@@ -440,85 +440,6 @@ knn_k_fold_cv <- function(data,
 
 
 ```{r}
-### Threshhold optimization
-treshhold_optimizer <- function(data,
-                          estimate_func, 
-                          percentile_values, 
-                          knn_k = 1, # irrelavent 
-                          dist_metrics,
-                          print_bool = F) {
-
-  results_list <- list()
-  # Perform K-fold cross-validation
-  
-  ids <- data[, ncol(data)]  
-  
-  unique_ids <- unique(ids)  
-  
-  i = 1 
-  for(id in unique_ids) {
-    for (percentile in percentile_values) {
-      for (dist_metric in dist_metrics) {
-        test_data <- data[ids == id, , drop = FALSE]
-        train_data <- data[ids != id, , drop = FALSE]
-        
-        # Run the classification pipeline
-        results <- classification_pipeline(train_data, 
-                                           test_data,
-                                           estimate_func = estimate_func,
-                                           percentile = percentile,
-                                           knn_k = knn_k ,
-                                           dist_metric = dist_metric,
-                                           knn_bool = F)
-        
-          # Store results for this fold
-          results_list[[i]] <- list(
-            knn_k = knn_k,
-            percentile = percentile,
-            dist_metric = dist_metric,
-            binary_false_positive_rate = results$binary_false_positive_rate,
-            binary_false_negative_rate = results$binary_false_negative_rate,
-            classification_match_rate = results$classification_match_rate,
-            classification_fail_rate = results$classification_fail_rate
-          )
-          i = i+1
-      }
-    }
-  }
-  
-  
-  # Convert results to data frame
-  results_df <- do.call(rbind, lapply(results_list, as.data.frame))
-  
-  # Find the best parameters for threshold and for knn
-  best_params_knn <- results_df[which.max(results_df$classification_match_rate_mean), ]
-  best_params_binary <- results_df[which.min(results_df$binary_false_negative_rate_mean), ]
-  
-  print("#################### Best Hyperparameters ####################")
-  print(paste("Distance Metric: ", best_params_knn$dist_metric))
-  print(paste("Percentile for Quantile Threshold: ", best_params_binary$percentile))
-  print(paste("KNN K nearest neighbors: ", best_params_knn$knn_k))
-
-  return(results_df)#, scores_by_fold=all_results))
-}
-
-# Example of using the function
-#results <- k_fold_cv(data_matriz, k_CV = 4)
-```
-
-
-```{r}
-result = knn_k_fold_binary(data_matriz,
-                          estimate_func = estimate_threshold_via_percentile , 
-                          percentile_values = c(0.9,0.95,0.99), 
-                          knn_k = 1, # irrelavent 
-                          dist_metrics = c("euclidean", "manhattan"),
-                          print_bool = F)
-result 
-```
-
-
-```{r}
 CV_grid_search <- function(data, knn_k_values, percentile_values, dist_metrics, k_CV = 5) {
   # Store results
   results_list <- list()
@@ -646,18 +567,6 @@ for (distance_metric in c("euclidean", "manhattan")) {
 ```
 
 ## Run KNN
-
-## Find Optimal Treshhold Params 
-
-```{r}
-result = knn_k_fold_binary(data_matriz,
-                          estimate_func = estimate_threshold_via_percentile , 
-                          percentile_values = c(0.9,0.95,0.99), 
-                          knn_k = 1, # irrelavent 
-                          dist_metrics = c("euclidean", "manhattan"),
-                          print_bool = F)
-result 
-```
 
 
 ### Run KNN on Raw Data
