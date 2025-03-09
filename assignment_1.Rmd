@@ -504,22 +504,51 @@ knn_classifier_full <- function(path_train,
                            knn_k,
                            result, 
                            estimate_func = estimate_threshold_via_percentile,
-                           percentile = percentile) {
+                           percentile = percentile,
+                           pca_bool = F) {
+
+  
 
   
   data_train = read_all_images(path_train)
   data_test = read_all_images(path_test)
   
-  image_names = data_test$ID
+  image_names_test = data_test$ID
+  
+  data_train_labels <- data_train$Label
+  data_test_labels <- data_test$Label  
 
-  data_train_reduced = data_train %>% dplyr::select(-ID)
-  data_test_reduced = data_test %>% dplyr::select(-ID)
+  data_train = data_train %>% dplyr::select(-ID)
+  data_test = data_test %>% dplyr::select(-ID)
+
+
   
-  data_train_asmatrix = as.matrix(data_train_reduced)
-  data_test_asmatrix = as.matrix(data_test_reduced)
-  
-  #data_test_asmatrix[, ncol(data_test_asmatrix)][!labels_test_init %in% labels_train] <- 0
-  #labels_test = data_test_asmatrix[,ncol(data_test_asmatrix)]
+  if (pca_bool){
+    
+    pca_result <- PCA.fun(data_train)
+    
+    # Get results and get PC's that explain 95% Variance
+    eig_vecs <- pca_result$"Eigen Vector"
+    cumulative_variance <- cumsum(pca_result$D)
+    num_components <- which(cumulative_variance >= 0.95)[1]
+    
+    # Project data onto selected PCs
+    data_train_asmatrix <- as.matrix(data_train %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components]
+    data_test_asmatrix <- as.matrix(data_test %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components]
+
+    data_train_asmatrix = cbind(data_train_asmatrix, data_train_labels)
+    data_test_asmatrix = cbind(data_test_asmatrix, data_test_labels)
+    
+    print(data_test_asmatrix[,ncol(data_test_asmatrix)])
+
+  }else{
+
+      
+    data_train_asmatrix = as.matrix(data_train)
+    data_test_asmatrix = as.matrix(data_test)
+    
+    print(data_test_asmatrix[,ncol(data_test_asmatrix)])
+  }
   
   
   classification_result = classification_pipeline(train_data = data_train_asmatrix,
@@ -529,8 +558,8 @@ knn_classifier_full <- function(path_train,
                                     knn_k = knn_k,
                                     dist_metric = dist_metric)
   
-  classification_result$classification = cbind(image_names,classification_result$classification)
-  classification_result$classification_binary = cbind(image_names,classification_result$classification_binary)
+  classification_result$classification = cbind(image_names_test,classification_result$classification)
+  classification_result$classification_binary = cbind(image_names_test,classification_result$classification_binary)
 
   
   # Return result
@@ -644,9 +673,10 @@ TODO: Discuss Results
 results = knn_classifier_full( path_train = "Training_alpha", 
                                path_test = "Test_alpha",
                                dist_metric = 'euclidean',
-                               knn_k = 6,
+                               knn_k = 3,
                                estimate_func = estimate_threshold_via_percentile,
-                               percentile = 0.8)
+                               percentile = 0.99,
+                               pca_bool = T)
 
 results
 ```
