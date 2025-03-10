@@ -16,6 +16,8 @@ library(ggplot2)
 library(caret)
 library(pROC)
 library(tictoc)
+library(dplyr)
+library(MASS)
 ```
 
 # Notes and Teach inputs
@@ -123,40 +125,167 @@ distance_distributions <- function(data, distance_metric="euclidean"){
 
 
 # PCA
-
-
-TODO: Make explained Variance plot
+```{r}
+PCA.fun = function(X){
+  X = X %>% dplyr::select(-c("Label","ID"))
+  print(dim(X))
+  X = as.matrix(X)
+  n = nrow(X)
+  mu = colMeans(X)
+  # center data
+  G = sweep(X, 2, mu, FUN = "-")
+  # Compute the covariance matrix
+  cov_matrix =(1/(n-1))*(G %*% t(G))
+  ## Calculate Eigenvalues and Eigenvectors and sort
+  eig = eigen(cov_matrix)
+  eig_val = eig$values
+  eig_vec = eig$vectors
+  ei_vec_large = t(G)%*%eig_vec
+  # sort
+  sort_index <- order(eig_val, decreasing = TRUE)
+  eig_val_sorted <- eig_val[sort_index]
+  eig_vec_sorted <- ei_vec_large[, sort_index] 
+  #variability of each PC
+  D = eig_val_sorted/sum(eig_val_sorted)
+  return(list("Eigen Vector"= eig_vec_sorted,"D"=D))
+  }
+```
+This function is created using the following formula. 
+$$\Sigma_{s}= \frac{1}{n-1}GG^{t}$$
+Where G is the matrix of features less the mean of each column.
+The eigen vectors of this new matrix are the same eigen vector of the original matrix and if you multiply $G^{t}\cdot eigen\_vector$ you will get the eigen vector of the typical matrix.
 
 ```{r}
 folder_path = "Training"
 data_PCA = read_all_images(folder_path)
 print(system.time(PCA.fun(data_PCA)))
 PCA_result = PCA.fun(data_PCA)
-toc("time:")
 cumsum(PCA_result$D)
 data_PC = as.matrix(data_PCA[,1:108000])%*%PCA_result$`Eigen Vector`[,1:40]
 print(system.time(prcomp(as.matrix(data_PCA[,1:108000]),scale. = T)))
 compare_pc = prcomp(as.matrix(data_PCA[,1:108000]),scale. = T)
 print(cumsum(compare_pc$sdev^2)/sum(compare_pc$sdev^2))
 
-### Verify with library
-#out = princomp(X)
-
-#pc1 = matrix(out$scores[,1],nrow=nrow(red), ncol=ncol(green))
-#imageShow(pc1)
-
-#pc2 = matrix(out$scores[,2],nrow=nrow(red), ncol=ncol(green))
-#imageShow(pc2)
-
-#pc3 = matrix(out$scores[,3],nrow=nrow(red), ncol=ncol(green))
-#imageShow(pc3)
 ```
 If we compare the PCA function we created with prcomp(), we can see a significant difference in execution time and system resource usage. This is because the base function assumes that $n >> p$, but for the type of data we are working with, this approach is less optimal. Instead, we use a function that is optimized for cases where $n <<p$.
 
 When comparing the eigenvalues, our custom function required fewer eigenvalues to achieve the same explained variance.
 
+```{r}
+df <- data.frame(
+  Components = 1:length(PCA_result$D),
+  CumulativeVariance = cumsum(PCA_result$D)
+)
+
+# Plot the cumulative explained variance
+ggplot(df, aes(x = Components, y = CumulativeVariance)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Cumulative Explained Variance",
+       x = "Principal Components",
+       y = "Cumulative Variance Explained") +
+  theme_minimal()
+```
+
+In the graph you can see that if we want to get close to 90% of the variance of the data we only need to get 25 principal components.
+
+###FDA function
+
+```{r}
+FDA.fun = function(data, labels, reg = 1e-6) {
+  data = as.matrix(data)
+  labels = as.factor(labels)
+  
+  num_classes = length(unique(labels))
+  num_features = ncol(data)
+  #overall mean
+  mean_total = colMeans(data)
+  #mean by class
+  class_levels = levels(labels)
+  class_means = matrix(0, nrow = num_classes, ncol = num_features)
+  rownames(class_means) = class_levels
+  
+  for (i in 1:num_classes) {
+    class_means[i, ] = colMeans(data[labels == class_levels[i], , drop = FALSE])
+  }
+  #within classes matrix
+  Sw = matrix(0, num_features, num_features)
+  for (i in 1:num_classes) {
+    class_data = data[labels == class_levels[i], , drop = FALSE]
+    mean_diff = sweep(class_data, 2, class_means[i, ], "-")  
+    Sw = Sw + t(mean_diff) %*% mean_diff
+  }
+  
+  Sw = Sw + reg * diag(num_features)
+  
+  Sb = matrix(0, num_features, num_features)
+  #between classes matrix
+  for (i in 1:num_classes) {
+    mean_diff = matrix(class_means[i, ] - mean_total, ncol = 1)
+    Sb = Sb + sum(labels == class_levels[i]) * (mean_diff %*% t(mean_diff))
+  }
+  
+  L = chol(Sw)
+  L_inv = solve(L)
+  S_transformed = t(L_inv) %*% Sb %*% L_inv
+  
+  eig = eigen(S_transformed)
+  idx = order(Re(eig$values), decreasing = TRUE)
+  eigenvalues = Re(eig$values[idx])
+  P = L_inv %*% Re(eig$vectors[, idx])
+  
+  num_components = min(num_classes - 1, num_features)
+  eigenvalues = eigenvalues[1:num_components]
+  P = P[, 1:num_components, drop = FALSE]
+  D = eigenvalues / sum(eigenvalues)  
+  transform_data = data %*% P
+  return(list(mean = mean_total, P = P, D = D,transform_data= transform_data,labels=labels))
+}
+```
 
 
+This function implements Fisher Discriminant Analysis to find a projection matrix $P$ that maximizes class separability. It computes the within-class scatter matrix $S_{w}$ and between-class scatter matrix $ S_{b} $, then solves the generalized eigenvalue problem for $ S_{w}^{-1} S_{b} $. Since $ S_{w}$ can be singular or ill-conditioned, direct inversion is unstable. Instead, we use Cholesky decomposition $ S_{w} = L L^{T} $ to transform the problem into a standard eigenvalue decomposition, ensuring numerical stability. The function returns the mean vector $ \mu$, the projection matrix $ P $ (top eigenvectors), and the variance explained $D$ by each discriminant.
+```{r}
+pca_result <- PCA.fun(data_PCA)
+
+# Get results and get PC's that explain 95% Variance
+eig_vecs <- pca_result$"Eigen Vector"
+cumulative_variance <- cumsum(pca_result$D)
+num_components <- which(cumulative_variance >= 0.95)[1]
+
+# Project data onto selected PCs
+data_reduced <- as.matrix(data_PCA %>% dplyr::select(-c("Label","ID"))) %*% eig_vecs[, 1:num_components]
+
+
+result_FDA = FDA.fun(data_reduced,data_PCA$Label)
+
+data_reduced_FDA <-result_FDA$transform_data
+df_plot <- data.frame(result_FDA$transform_data, labels = result_FDA$labels)
+ggplot(df_plot, aes(x = X1, y = X2, color = labels)) + geom_point()
+
+```
+
+```{r}
+df_FDA <- data.frame(
+  Components = 1:length(result_FDA$D),
+  CumulativeVariance = cumsum(result_FDA$D)
+)
+
+# Plot the cumulative explained variance
+ggplot(df_FDA, aes(x = Components, y = CumulativeVariance)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Cumulative Explained Variance",
+       x = "Fisher Discriminants",
+       y = "Cumulative Variance Explained") +
+  theme_minimal()
+```
+If you take the first 10 fisher discriminate you can get 90% of the reduce (PCA) matrix variability explain.
+```{r}
+system.time(FDA.fun(data_reduced,data_PCA$Label))
+system.time( MASS::lda(data_reduced,data_PCA$Label))
+```
+We obtain the same resultsn meaning that or function avoid problems and can be use as the one in MASS library.
 ## Functions
 
 ### Test/Train Split
