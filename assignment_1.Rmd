@@ -189,7 +189,7 @@ ggplot(df, aes(x = Components, y = CumulativeVariance)) +
 
 In the graph you can see that if we want to get close to 90% of the variance of the data we only need to get 25 principal components.
 
-###FDA function
+###FDA function New
 
 ```{r}
 FDA.fun = function(data, labels, reg = 1e-6) {
