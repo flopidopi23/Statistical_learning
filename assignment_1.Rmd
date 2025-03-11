@@ -9,6 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r warning=FALSE}
+# library Imports
 library(OpenImageR)
 library(EBImage)
 library(grid)
@@ -18,6 +19,8 @@ library(pROC)
 library(tictoc)
 library(dplyr)
 library(MASS)
+library(gtools)   
+
 ```
 
 # Notes and Teach inputs
@@ -66,17 +69,54 @@ to avoid computational cost. Take optimal from previous and only optimize new pa
 JUSTIFY! 
 
 
+# Introduction
 
-# Data Import and Preprocessing 
 
-```{r warning=FALSE}
-# load selfmade functions
-source("PCA_function.R")
-source("read_data_function.R")
+
+# Data Import
+
+```{r}
+
+read_all_images <- function(folder_path) {
+  image_files <- list.files(folder_path, full.names = TRUE, pattern = "\\.(jpg|png|jpeg|tiff|bmp)$", ignore.case = TRUE)
+  
+  # Sort filenames
+  image_files <- mixedsort(image_files)  
+  
+  # Extract labels from filenames
+  extract_label <- function(filename) {
+    base_name <- tools::file_path_sans_ext(basename(filename))  
+    label <- gsub("[^0-9]", "", base_name)  # Extract numeric part
+    return(label)
+  }
+  extract_filename <- function(filepath) {
+    return(basename(filepath))
+  }
+  read_data <- function(image_path) {
+    img <- readImage(image_path)  
+    red_aux   <- as.vector(img[,,1])
+    green_aux <- as.vector(img[,,2])
+    blue_aux  <- as.vector(img[,,3])
+    
+    # Combine all channels into a single row
+    img_vector <- c(red_aux, green_aux, blue_aux)
+    
+    return(as.data.frame(t(img_vector)))  # Transpose to make it a row
+  }
+  
+  image_list <- lapply(image_files, function(file) {
+    img_data <- read_data(file)  
+    img_data$Label <- extract_label(file)
+    img_data$ID <- extract_filename(file) 
+    return(img_data)
+  })
+  
+  ax <- do.call(rbind, image_list)
+  return(ax)
+}
 ```
 
 
-# Data Import and Preprocessing 
 
 
 # Distance Histograms
@@ -124,12 +164,19 @@ distance_distributions <- function(data, distance_metric="euclidean"){
 ```
 
 
-# PCA
+
+
+# Principal Component Analysis (PCA)
+
+The following section contains a function to perform principal Component Analysis on any kind of Data. The function is first defined and then applied to the image data and its results are compared to the base R pca function.
+
 ```{r}
+### PCA Function
 PCA.fun = function(X){
   X = X %>% dplyr::select(-c("Label","ID"))
   print(dim(X))
   X = as.matrix(X)
+  X = apply(X, 2, as.numeric) # make sure it is numeric
   n = nrow(X)
   mu = colMeans(X)
   # center data
@@ -167,6 +214,7 @@ compare_pc = prcomp(as.matrix(data_PCA[,1:108000]),scale. = T)
 print(cumsum(compare_pc$sdev^2)/sum(compare_pc$sdev^2))
 
 ```
+
 If we compare the PCA function we created with prcomp(), we can see a significant difference in execution time and system resource usage. This is because the base function assumes that $n >> p$, but for the type of data we are working with, this approach is less optimal. Instead, we use a function that is optimized for cases where $n <<p$.
 
 When comparing the eigenvalues, our custom function required fewer eigenvalues to achieve the same explained variance.
@@ -189,7 +237,7 @@ ggplot(df, aes(x = Components, y = CumulativeVariance)) +
 
 In the graph you can see that if we want to get close to 90% of the variance of the data we only need to get 25 principal components.
 
-###FDA function New
+# Fisher Discriminant Analysis (FDA)
 
 ```{r}
 FDA.fun = function(data, labels, reg = 1e-6) {
@@ -245,6 +293,7 @@ FDA.fun = function(data, labels, reg = 1e-6) {
 
 
 This function implements Fisher Discriminant Analysis to find a projection matrix $P$ that maximizes class separability. It computes the within-class scatter matrix $S_{w}$ and between-class scatter matrix $ S_{b} $, then solves the generalized eigenvalue problem for $ S_{w}^{-1} S_{b} $. Since $ S_{w}$ can be singular or ill-conditioned, direct inversion is unstable. Instead, we use Cholesky decomposition $ S_{w} = L L^{T} $ to transform the problem into a standard eigenvalue decomposition, ensuring numerical stability. The function returns the mean vector $ \mu$, the projection matrix $ P $ (top eigenvectors), and the variance explained $D$ by each discriminant.
+
 ```{r}
 pca_result <- PCA.fun(data_PCA)
 
@@ -285,7 +334,9 @@ If you take the first 10 fisher discriminate you can get 90% of the reduce (PCA)
 system.time(FDA.fun(data_reduced,data_PCA$Label))
 system.time( MASS::lda(data_reduced,data_PCA$Label))
 ```
-We obtain the same resultsn meaning that or function avoid problems and can be use as the one in MASS library.
+We obtain the same results meaning that or function avoid problems and can be use as the one in MASS library.
+
+
 ## Functions
 
 ### Test/Train Split
@@ -470,12 +521,73 @@ classification_pipeline <- function(train_data,
                                     percentile,
                                     knn_k,
                                     dist_metric,
-                                    knn_bool = T) {
+                                    expl_var_pca = 0.95,
+                                    expl_var_fda = 0.95,
+                                    knn_bool = T,
+                                    pca_bool = F,
+                                    fda_bool =F) {
   
   # Replace IDs in test_data that are not in train_data with "0"
   train_ids <- train_data[, ncol(train_data)]
   test_ids <- test_data[, ncol(test_data)]
   test_data[, ncol(test_data)][!test_ids %in% train_ids] <- 0
+  
+  
+  # run pca if required 
+  if (pca_bool){
+    print("######## Run PCA ########")
+    
+    # turn to df for compatability
+    train_data <- as.data.frame(train_data[,-ncol(train_data)])
+    train_data <- train_data %>% mutate_all(as.numeric)
+    
+    train_data$Label <- NA
+    train_data$ID <- NA
+    
+    # Run PCA
+    pca_result <- PCA.fun(train_data)
+    
+    # Get results and get PC's that explain 95% Variance
+    eig_vecs <- pca_result$"Eigen Vector"
+    cumulative_variance <- cumsum(pca_result$D)
+    num_components_pca <- which(cumulative_variance >= expl_var_pca)[1]
+    
+    # Project data onto selected PCs
+    train_data <- as.matrix(train_data %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components_pca]
+    test_data <- as.matrix(test_data %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components_pca]
+
+    train_data = cbind(train_data, train_ids)
+    test_data = cbind(test_data, test_ids)
+
+  }
+  
+  if (fda_bool){
+    print("######## Run FDA ########")
+    
+    # turn to df for compatability
+    train_data <- as.data.frame(train_data[,-ncol(train_data)])
+    train_data <- train_data %>% mutate_all(as.numeric)
+
+    train_data$Label <- NA
+    train_data$ID <- NA
+    
+    # run fda
+    result_FDA = FDA.fun(train_data[,-ncol(train_data)],train_ids)
+    
+    # select discriminants according to explained variance
+    cumulative_variance_FDA <- cumsum(result_FDA$D)
+    num_components_fda <- which(cumulative_variance_FDA >= expl_var_fda)[1]
+    
+    # transform train & test
+    train_data = as.matrix(train_data)
+    train_data = train_data[,-ncol(train_data)]%*% result_FDA$P[, 1:num_components_fda]
+    test_data = test_data[,-ncol(test_data)]%*% result_FDA$P[, 1:num_components_fda]
+  
+    train_data = cbind(train_data, train_ids)
+    test_data = cbind(test_data, test_ids)
+    
+  }
+
   
   # Estimate thresholds
   thresholds <- estimate_thresholds(train_data, estimate_func = estimate_func, percentile = percentile)
@@ -525,6 +637,10 @@ knn_k_fold_cv <- function(data,
                           percentile, 
                           knn_k, 
                           dist_metric,
+                          expl_var_pca,
+                          expl_var_fda,
+                          knn_bool,
+                          pca_bool,
                           print_bool = F) {
 
   all_results <- list()
@@ -541,7 +657,11 @@ knn_k_fold_cv <- function(data,
                                        estimate_func = estimate_func,
                                        percentile = percentile,
                                        knn_k = knn_k ,
-                                       dist_metric = dist_metric)
+                                       dist_metric = dist_metric,
+                                       expl_var_pca,
+                                       expl_var_fda,
+                                       knn_bool,
+                                       pca_bool)
     
     # Store results for this fold
     all_results[[i]] <- list(
@@ -578,7 +698,15 @@ knn_k_fold_cv <- function(data,
 
 
 ```{r}
-CV_grid_search <- function(data, knn_k_values, percentile_values, dist_metrics, k_CV = 5) {
+CV_grid_search <- function(data, 
+                           knn_k_values, 
+                           percentile_values, 
+                           dist_metrics,
+                           expl_var_pca_grid,
+                           expl_var_fda_grid,
+                           k_CV = 5,
+                           knn_bool = F,
+                           pca_bool = F) {
   # Store results
   results_list <- list()
   
@@ -588,26 +716,35 @@ CV_grid_search <- function(data, knn_k_values, percentile_values, dist_metrics, 
   for (knn_k in knn_k_values) {
     for (percentile in percentile_values) {
       for (dist_metric in dist_metrics) {
+        for (expl_var_pca in expl_var_pca_grid) {
+          for (expl_var_fda in expl_var_fda_grid) {
+            # Run cross-validation
+            avg_scores <- knn_k_fold_cv(data,
+                                        folds,
+                                        k_CV = k_CV,
+                                        estimate_func = estimate_threshold_via_percentile,
+                                        percentile = percentile,
+                                        knn_k = knn_k,
+                                        dist_metric = dist_metric,
+                                        expl_var_pca = expl_var_pca,
+                                        expl_var_fda = expl_var_fda,
+                                        knn_bool,
+                                        pca_bool)
         
-        # Run cross-validation
-        avg_scores <- knn_k_fold_cv(data,
-                                    folds,
-                                    k_CV = k_CV,
-                                    estimate_func = estimate_threshold_via_percentile,
-                                    percentile = percentile,
-                                    knn_k = knn_k,
-                                    dist_metric = dist_metric)
-        
-        # Store results
-        results_list[[paste(knn_k, percentile, dist_metric, sep="_")]] <- list(
-          knn_k = knn_k,
-          percentile = percentile,
-          dist_metric = dist_metric,
-          binary_false_positive_rate_mean = avg_scores$binary_false_positive_rate_mean,
-          binary_false_negative_rate_mean = avg_scores$binary_false_negative_rate_mean,
-          classification_match_rate_mean = avg_scores$classification_match_rate_mean,
-          classification_fail_rate_mean = avg_scores$classification_fail_rate_mean
-        )
+            # Store results
+            results_list[[paste(knn_k, percentile, dist_metric, sep="_")]] <- list(
+              knn_k = knn_k,
+              percentile = percentile,
+              dist_metric = dist_metric,
+              expl_var_pca = expl_var_pca,
+              expl_var_fda = expl_var_fda,
+              binary_false_positive_rate_mean = avg_scores$binary_false_positive_rate_mean,
+              binary_false_negative_rate_mean = avg_scores$binary_false_negative_rate_mean,
+              classification_match_rate_mean = avg_scores$classification_match_rate_mean,
+              classification_fail_rate_mean = avg_scores$classification_fail_rate_mean
+            )
+          }
+        }
       }
     }
   }
@@ -623,6 +760,9 @@ CV_grid_search <- function(data, knn_k_values, percentile_values, dist_metrics, 
   print(paste("Distance Metric: ", best_params_knn$dist_metric))
   print(paste("Percentile for Quantile Threshold: ", best_params_binary$percentile))
   print(paste("KNN K nearest neighbors: ", best_params_knn$knn_k))
+  print(paste("PCA explained Variance Threshhold: ", best_params_knn$expl_var_pca))
+  print(paste("FDA explained Variance Threshhold: ", best_params_knn$expl_var_fda))
+
 
   return(list(results_df = results_df, 
               best_params_knn = best_params_knn, 
@@ -710,7 +850,7 @@ knn_classifier_full <- function(path_train,
 
 ## Load Data
 ```{r}
-folder_path = "Training"
+folder_path = "Training_alpha"
 data = read_all_images(folder_path)
 
 labels <- data$Label  
@@ -740,11 +880,16 @@ for (distance_metric in c("euclidean", "manhattan")) {
 
 ```{r}
 ### Run grid Search to optimize Hyperparameters
-CV_grid_search_result <- CV_grid_search(data_reduced_labeled,
+CV_grid_search_result <- CV_grid_search(data_matriz,
                                         k_CV = 5,
                                         knn_k_values = c(3, 4, 5, 6, 7), 
                                         percentile_values = c(0.8, 0.9, 0.95, 0.99), 
-                                        dist_metrics = c("euclidean", "manhattan"))
+                                        dist_metrics = c("euclidean", "manhattan"),
+                                        expl_var_pca_grid = c(0.9,0.95),
+                                        expl_var_fda_grid = c(0.9,0.95),
+                                        knn_bool = T,
+                                        pca_bool = T
+                                        )
 
 #print(CV_grid_search_result$results_df)
 print(CV_grid_search_result$best_params_knn)
@@ -767,8 +912,8 @@ num_components <- which(cumulative_variance >= 0.95)[1]
 
 # Project data onto selected PCs
 data_reduced <- as.matrix(data %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components]
-
 data_reduced_labeled = cbind(data_reduced, labels)
+
 ```
 
 
@@ -790,6 +935,17 @@ print(CV_grid_search_result$best_params_binary)
 ```{r}
 
 ```
+
+
+### Run KNN on data dimension reduced by FDA and PCA
+
+```{r}
+df_FDA <- data.frame(
+  Components = 1:length(result_FDA$D),
+  CumulativeVariance = cumsum(result_FDA$D)
+)
+```
+
 
 
 
