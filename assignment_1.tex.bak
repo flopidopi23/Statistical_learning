@@ -1,0 +1,2966 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Eigenfaces},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Eigenfaces}
+\author{}
+\date{\vspace{-2.5em}2025-02-12}
+
+\begin{document}
+\maketitle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# library Imports}
+\FunctionTok{library}\NormalTok{(OpenImageR)}
+\FunctionTok{library}\NormalTok{(EBImage)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'EBImage'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:OpenImageR':
+## 
+##     readImage, writeImage
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(grid)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(caret)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Loading required package: lattice
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(pROC)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Type 'citation("pROC")' for a citation.
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Attaching package: 'pROC'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:stats':
+## 
+##     cov, smooth, var
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tictoc)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'dplyr'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:EBImage':
+## 
+##     combine
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(MASS)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'MASS'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:dplyr':
+## 
+##     select
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(gtools) }
+\FunctionTok{library}\NormalTok{(reshape2)}
+\FunctionTok{library}\NormalTok{(gridExtra)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'gridExtra'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:EBImage':
+## 
+##     combine
+\end{verbatim}
+
+\section{README}\label{readme}
+
+The following Document is Split into three Main Parts: - Functions (only
+definitions) - Code execution to find optimal classification set up -
+Classification execution for new data (Last code chunk of Rmd)
+\textless- This is the code that should be used to evaluate the
+classification
+
+\section{Introduction}\label{introduction}
+
+The following document contains the work done for assignments 1 and 2 of
+the course on statistical learning at Universidad Carlos III de Madrid.
+This assignment aims to implement two facial recognition classifiers
+based on the K-nearest neighbor algorithm and using Principal Component
+Analysis (PCA) and Fisher Discriminant Analysis (FDA). Both techniques
+aim to reduce the dimensionality of the image data while preserving
+critical information for classification.
+
+In Part A, we employ PCA to construct a facial recognizer. PCA is an
+unsupervised method that finds the principal components of the data,
+capturing the directions of maximum variance. Using PCA, we project the
+images onto a lower-dimensional space and classify them using a
+k-nearest neighbors (k-NN) classifier. The classification process
+involves determining the optimal number of principal components to
+retain, selecting an appropriate number of neighbors in k-NN, defining a
+similarity metric, and establishing a threshold for determining whether
+a given image belongs to the database.
+
+In Part B, we implement a facial recognizer using Fisher Discriminant
+Analysis (FDA). Unlike PCA, FDA is a supervised method that finds a
+projection maximizing the class separability. This ensures that images
+of the same person remain close together while different individuals are
+more distinguishable. Similar to Part A, we use a k-NN classifier on the
+Fisher-discriminant-transformed data and determine the appropriate
+hyperparameters to optimize performance.
+
+We begin with defining the functions required for general use, PCA, FDA
+and KNN as well as cross validation and evaluation. Afterwards we use
+these functions to complete Part A and Part B of the assignment
+
+\section{Funcions}\label{funcions}
+
+In the following section, we define all the functions that will be used
+later on for both Part A and Part B.
+
+\subsection{Data Import}\label{data-import}
+
+The R function ``read\_all\_images'' reads all image files from a
+specified folder, extracts labels and filenames from the image file
+names, and converts the image data into a data frame format. It
+processes each image by reading its pixel values, combining the RGB
+channels into a single row, and appending the extracted labels and
+filenames to the data frame.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Read Data functions}
+\NormalTok{read\_all\_images }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(folder\_path) \{}
+\NormalTok{  image\_files }\OtherTok{\textless{}{-}} \FunctionTok{list.files}\NormalTok{(folder\_path, }\AttributeTok{full.names =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{pattern =} \StringTok{"}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{.(jpg|png|jpeg|tiff|bmp)$"}\NormalTok{, }\AttributeTok{ignore.case =} \ConstantTok{TRUE}\NormalTok{)}
+  
+  \CommentTok{\# Sort filenames}
+\NormalTok{  image\_files }\OtherTok{\textless{}{-}} \FunctionTok{mixedsort}\NormalTok{(image\_files)  }
+  
+  \CommentTok{\# Extract labels from filenames}
+\NormalTok{  extract\_label }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(filename) \{}
+\NormalTok{    base\_name }\OtherTok{\textless{}{-}}\NormalTok{ tools}\SpecialCharTok{::}\FunctionTok{file\_path\_sans\_ext}\NormalTok{(}\FunctionTok{basename}\NormalTok{(filename))  }
+\NormalTok{    label }\OtherTok{\textless{}{-}} \FunctionTok{gsub}\NormalTok{(}\StringTok{"[\^{}0{-}9]"}\NormalTok{, }\StringTok{""}\NormalTok{, base\_name)  }\CommentTok{\# Extract numeric part}
+    \FunctionTok{return}\NormalTok{(label)}
+\NormalTok{  \}}
+\NormalTok{  extract\_filename }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(filepath) \{}
+    \FunctionTok{return}\NormalTok{(}\FunctionTok{basename}\NormalTok{(filepath))}
+\NormalTok{  \}}
+\NormalTok{  read\_data }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(image\_path) \{}
+\NormalTok{    img }\OtherTok{\textless{}{-}} \FunctionTok{readImage}\NormalTok{(image\_path)  }
+\NormalTok{    red\_aux   }\OtherTok{\textless{}{-}} \FunctionTok{as.vector}\NormalTok{(img[,,}\DecValTok{1}\NormalTok{])}
+\NormalTok{    green\_aux }\OtherTok{\textless{}{-}} \FunctionTok{as.vector}\NormalTok{(img[,,}\DecValTok{2}\NormalTok{])}
+\NormalTok{    blue\_aux  }\OtherTok{\textless{}{-}} \FunctionTok{as.vector}\NormalTok{(img[,,}\DecValTok{3}\NormalTok{])}
+    
+    \CommentTok{\# Combine all channels into a single row}
+\NormalTok{    img\_vector }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(red\_aux, green\_aux, blue\_aux)}
+    
+    \FunctionTok{return}\NormalTok{(}\FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{t}\NormalTok{(img\_vector)))  }\CommentTok{\# Transpose to make it a row}
+\NormalTok{  \}}
+  
+\NormalTok{  image\_list }\OtherTok{\textless{}{-}} \FunctionTok{lapply}\NormalTok{(image\_files, }\ControlFlowTok{function}\NormalTok{(file) \{}
+\NormalTok{    img\_data }\OtherTok{\textless{}{-}} \FunctionTok{read\_data}\NormalTok{(file)  }
+\NormalTok{    img\_data}\SpecialCharTok{$}\NormalTok{Label }\OtherTok{\textless{}{-}} \FunctionTok{extract\_label}\NormalTok{(file)}
+\NormalTok{    img\_data}\SpecialCharTok{$}\NormalTok{ID }\OtherTok{\textless{}{-}} \FunctionTok{extract\_filename}\NormalTok{(file) }
+    \FunctionTok{return}\NormalTok{(img\_data)}
+\NormalTok{  \})}
+  
+\NormalTok{  ax }\OtherTok{\textless{}{-}} \FunctionTok{do.call}\NormalTok{(rbind, image\_list)}
+  \FunctionTok{return}\NormalTok{(ax)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Distance Histograms}\label{distance-histograms}
+
+The function ``distance\_distributions'' calculates pairwise distances
+between rows in a dataset using a specified distance metric and plots
+histograms of these distances, distinguishing between distances within
+the same group and distances between different groups.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Distance Histograms}
+\NormalTok{distance\_distributions }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(data, }\AttributeTok{distance\_metric=}\StringTok{"euclidean"}\NormalTok{)\{}
+  
+\NormalTok{  ids }\OtherTok{\textless{}{-}}\NormalTok{ data[, }\FunctionTok{ncol}\NormalTok{(data)]}
+  
+  \CommentTok{\# set up distance matrix/data frame}
+\NormalTok{  dist\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(}\FunctionTok{dist}\NormalTok{(data[, }\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(data)], }\AttributeTok{method =}\NormalTok{ distance\_metric))}
+\NormalTok{  dist\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+    \AttributeTok{row1 =} \FunctionTok{rep}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{nrow}\NormalTok{(data), }\AttributeTok{each =} \FunctionTok{nrow}\NormalTok{(data)),}
+    \AttributeTok{row2 =} \FunctionTok{rep}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{nrow}\NormalTok{(data), }\AttributeTok{times =} \FunctionTok{nrow}\NormalTok{(data)),}
+    \AttributeTok{distance =} \FunctionTok{as.vector}\NormalTok{(dist\_matrix)}
+\NormalTok{  )}
+\NormalTok{  dist\_df }\OtherTok{\textless{}{-}}\NormalTok{ dist\_df[dist\_df}\SpecialCharTok{$}\NormalTok{row1 }\SpecialCharTok{!=}\NormalTok{ dist\_df}\SpecialCharTok{$}\NormalTok{row2, ] }\CommentTok{\# remove self distances}
+  
+\NormalTok{  dist\_df}\SpecialCharTok{$}\NormalTok{id1 }\OtherTok{\textless{}{-}}\NormalTok{ ids[dist\_df}\SpecialCharTok{$}\NormalTok{row1] }\CommentTok{\# Assign IDs}
+\NormalTok{  dist\_df}\SpecialCharTok{$}\NormalTok{id2 }\OtherTok{\textless{}{-}}\NormalTok{ ids[dist\_df}\SpecialCharTok{$}\NormalTok{row2]}
+  
+\NormalTok{  dist\_df\_same\_id }\OtherTok{\textless{}{-}}\NormalTok{ dist\_df[dist\_df}\SpecialCharTok{$}\NormalTok{id1 }\SpecialCharTok{==}\NormalTok{ dist\_df}\SpecialCharTok{$}\NormalTok{id2, ] }\CommentTok{\# In group distances}
+\NormalTok{  dist\_df\_same\_id }\OtherTok{\textless{}{-}}\NormalTok{ dist\_df\_same\_id[}\FunctionTok{order}\NormalTok{(dist\_df\_same\_id}\SpecialCharTok{$}\NormalTok{id1), ]}
+  
+  
+\NormalTok{  dist\_df\_diff\_id }\OtherTok{\textless{}{-}}\NormalTok{ dist\_df[dist\_df}\SpecialCharTok{$}\NormalTok{id1 }\SpecialCharTok{!=}\NormalTok{ dist\_df}\SpecialCharTok{$}\NormalTok{id2, ] }\CommentTok{\# Outside group distances}
+  
+\NormalTok{  dist\_df\_diff\_id}\SpecialCharTok{$}\NormalTok{id1 }\OtherTok{=} \DecValTok{0}
+\NormalTok{  dist\_df\_diff\_id}\SpecialCharTok{$}\NormalTok{id2 }\OtherTok{=} \DecValTok{0}
+  
+\NormalTok{  dist\_df\_split }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(dist\_df\_same\_id,dist\_df\_diff\_id)}
+  
+  
+  \CommentTok{\# Plot histogram}
+\NormalTok{  plot }\OtherTok{=} \FunctionTok{ggplot}\NormalTok{(dist\_df\_split, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ distance, }\AttributeTok{fill =} \FunctionTok{factor}\NormalTok{(id1))) }\SpecialCharTok{+}
+    \FunctionTok{geom\_density}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{, }\AttributeTok{position =} \StringTok{"identity"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Histogram of Pairwise Distances by ID"}\NormalTok{,}
+         \AttributeTok{x =} \StringTok{"Distance"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Frequency"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"ID Group"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{theme\_minimal}\NormalTok{()}
+  
+  \FunctionTok{return}\NormalTok{(plot)}
+    
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Principal Component Analysis
+(PCA)}\label{principal-component-analysis-pca}
+
+The following section contains a function to perform Principal Component
+Analysis (PCA) on any kind of Data. The function is first defined and
+then applied to the image data and its results are compared to the base
+R pca function.
+
+This function is created using the following formula.
+\[\Sigma_{s}= \frac{1}{n-1}GG^{t}\] Where G is the matrix of features
+less the mean of each column. The eigen vectors of this new matrix are
+the same eigen vector of the original matrix and if you multiply
+\(G^{t}\cdot eigen\_vector\) you will get the eigen vector of the
+typical matrix.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# PCA Function}
+\NormalTok{PCA.fun }\OtherTok{=} \ControlFlowTok{function}\NormalTok{(X,}\AttributeTok{matrix\_bool =}\NormalTok{ F)\{}
+  \ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\NormalTok{matrix\_bool)\{}
+\NormalTok{    X }\OtherTok{=}\NormalTok{ X }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\FunctionTok{c}\NormalTok{(}\StringTok{"Label"}\NormalTok{,}\StringTok{"ID"}\NormalTok{))}
+    \FunctionTok{print}\NormalTok{(}\FunctionTok{dim}\NormalTok{(X))}
+\NormalTok{    X }\OtherTok{=} \FunctionTok{as.matrix}\NormalTok{(X)}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{\{}
+\NormalTok{    X }\OtherTok{=}\NormalTok{ X[,}\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(X)]}
+    \FunctionTok{print}\NormalTok{(}\FunctionTok{dim}\NormalTok{(X))}
+\NormalTok{  \}}
+  
+\NormalTok{  n }\OtherTok{=} \FunctionTok{nrow}\NormalTok{(X)}
+\NormalTok{  mu }\OtherTok{=} \FunctionTok{colMeans}\NormalTok{(X)}
+  \CommentTok{\# center data}
+\NormalTok{  G }\OtherTok{=} \FunctionTok{sweep}\NormalTok{(X, }\DecValTok{2}\NormalTok{, mu, }\AttributeTok{FUN =} \StringTok{"{-}"}\NormalTok{)}
+  \CommentTok{\# Compute the covariance matrix}
+\NormalTok{  cov\_matrix }\OtherTok{=}\NormalTok{(}\DecValTok{1}\SpecialCharTok{/}\NormalTok{(n}\DecValTok{{-}1}\NormalTok{))}\SpecialCharTok{*}\NormalTok{(G }\SpecialCharTok{\%*\%} \FunctionTok{t}\NormalTok{(G))}
+  \DocumentationTok{\#\# Calculate Eigenvalues and Eigenvectors and sort}
+\NormalTok{  eig }\OtherTok{=} \FunctionTok{eigen}\NormalTok{(cov\_matrix)}
+\NormalTok{  eig\_val }\OtherTok{=}\NormalTok{ eig}\SpecialCharTok{$}\NormalTok{values}
+\NormalTok{  eig\_vec }\OtherTok{=}\NormalTok{ eig}\SpecialCharTok{$}\NormalTok{vectors}
+\NormalTok{  ei\_vec\_large }\OtherTok{=} \FunctionTok{t}\NormalTok{(G)}\SpecialCharTok{\%*\%}\NormalTok{eig\_vec}
+  \CommentTok{\# sort}
+\NormalTok{  sort\_index }\OtherTok{\textless{}{-}} \FunctionTok{order}\NormalTok{(eig\_val, }\AttributeTok{decreasing =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{  eig\_val\_sorted }\OtherTok{\textless{}{-}}\NormalTok{ eig\_val[sort\_index]}
+\NormalTok{  eig\_vec\_sorted }\OtherTok{\textless{}{-}}\NormalTok{ ei\_vec\_large[, sort\_index] }
+  \CommentTok{\#variability of each PC}
+\NormalTok{  D }\OtherTok{=}\NormalTok{ eig\_val\_sorted}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(eig\_val\_sorted)}
+  \FunctionTok{return}\NormalTok{(}\FunctionTok{list}\NormalTok{(}\StringTok{"Eigen Vector"}\OtherTok{=}\NormalTok{ eig\_vec\_sorted,}\StringTok{"D"}\OtherTok{=}\NormalTok{D))}
+\NormalTok{  \}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Fisher Discriminant Analysis
+(FDA)}\label{fisher-discriminant-analysis-fda}
+
+This function implements Fisher Discriminant Analysis to find a
+projection matrix \(P\) that maximizes class separability. It computes
+the within-class scatter matrix \(S_{w}\) and between-class scatter
+matrix \$ S\_\{b\} \$, then solves the generalized eigenvalue problem
+for \$ S\_\{w\}\^{}\{-1\} S\_\{b\} \$. Since \$ S\_\{w\}\$ can be
+singular or ill-conditioned, direct inversion is unstable. Instead, we
+use Cholesky decomposition \$ S\_\{w\} = L L\^{}\{T\} \$ to transform
+the problem into a standard eigenvalue decomposition, ensuring numerical
+stability. The function returns the mean vector \$ \mu\$, the projection
+matrix \$ P \$ (top eigenvectors), and the variance explained \(D\) by
+each discriminant.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{FDA.fun }\OtherTok{=} \ControlFlowTok{function}\NormalTok{(data, labels, }\AttributeTok{reg =} \FloatTok{1e{-}6}\NormalTok{) \{}
+  \ControlFlowTok{if}\NormalTok{(}\SpecialCharTok{!}\FunctionTok{is.matrix}\NormalTok{(data))\{}
+\NormalTok{    data }\OtherTok{=} \FunctionTok{as.matrix}\NormalTok{(data)}
+\NormalTok{  \}}
+  
+  
+\NormalTok{  labels }\OtherTok{=} \FunctionTok{as.factor}\NormalTok{(labels)}
+  
+\NormalTok{  num\_classes }\OtherTok{=} \FunctionTok{length}\NormalTok{(}\FunctionTok{unique}\NormalTok{(labels))}
+\NormalTok{  num\_features }\OtherTok{=} \FunctionTok{ncol}\NormalTok{(data)}
+  \CommentTok{\#overall mean}
+\NormalTok{  mean\_total }\OtherTok{=} \FunctionTok{colMeans}\NormalTok{(data)}
+  \CommentTok{\#mean by class}
+\NormalTok{  class\_levels }\OtherTok{=} \FunctionTok{levels}\NormalTok{(labels)}
+\NormalTok{  class\_means }\OtherTok{=} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, }\AttributeTok{nrow =}\NormalTok{ num\_classes, }\AttributeTok{ncol =}\NormalTok{ num\_features)}
+  \FunctionTok{rownames}\NormalTok{(class\_means) }\OtherTok{=}\NormalTok{ class\_levels}
+  
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_classes) \{}
+\NormalTok{    class\_means[i, ] }\OtherTok{=} \FunctionTok{colMeans}\NormalTok{(data[labels }\SpecialCharTok{==}\NormalTok{ class\_levels[i], , }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{])}
+\NormalTok{  \}}
+  \CommentTok{\#within classes matrix}
+\NormalTok{  Sw }\OtherTok{=} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, num\_features, num\_features)}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_classes) \{}
+\NormalTok{    class\_data }\OtherTok{=}\NormalTok{ data[labels }\SpecialCharTok{==}\NormalTok{ class\_levels[i], , drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{    mean\_diff }\OtherTok{=} \FunctionTok{sweep}\NormalTok{(class\_data, }\DecValTok{2}\NormalTok{, class\_means[i, ], }\StringTok{"{-}"}\NormalTok{)  }
+\NormalTok{    Sw }\OtherTok{=}\NormalTok{ Sw }\SpecialCharTok{+} \FunctionTok{t}\NormalTok{(mean\_diff) }\SpecialCharTok{\%*\%}\NormalTok{ mean\_diff}
+\NormalTok{  \}}
+  
+\NormalTok{  Sw }\OtherTok{=}\NormalTok{ Sw }\SpecialCharTok{+}\NormalTok{ reg }\SpecialCharTok{*} \FunctionTok{diag}\NormalTok{(num\_features)}
+  
+\NormalTok{  Sb }\OtherTok{=} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, num\_features, num\_features)}
+  \CommentTok{\#between classes matrix}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_classes) \{}
+\NormalTok{    mean\_diff }\OtherTok{=} \FunctionTok{matrix}\NormalTok{(class\_means[i, ] }\SpecialCharTok{{-}}\NormalTok{ mean\_total, }\AttributeTok{ncol =} \DecValTok{1}\NormalTok{)}
+\NormalTok{    Sb }\OtherTok{=}\NormalTok{ Sb }\SpecialCharTok{+} \FunctionTok{sum}\NormalTok{(labels }\SpecialCharTok{==}\NormalTok{ class\_levels[i]) }\SpecialCharTok{*}\NormalTok{ (mean\_diff }\SpecialCharTok{\%*\%} \FunctionTok{t}\NormalTok{(mean\_diff))}
+\NormalTok{  \}}
+  
+\NormalTok{  L }\OtherTok{=} \FunctionTok{chol}\NormalTok{(Sw)}
+\NormalTok{  L\_inv }\OtherTok{=} \FunctionTok{solve}\NormalTok{(L)}
+\NormalTok{  S\_transformed }\OtherTok{=} \FunctionTok{t}\NormalTok{(L\_inv) }\SpecialCharTok{\%*\%}\NormalTok{ Sb }\SpecialCharTok{\%*\%}\NormalTok{ L\_inv}
+  
+\NormalTok{  eig }\OtherTok{=} \FunctionTok{eigen}\NormalTok{(S\_transformed)}
+\NormalTok{  idx }\OtherTok{=} \FunctionTok{order}\NormalTok{(}\FunctionTok{Re}\NormalTok{(eig}\SpecialCharTok{$}\NormalTok{values), }\AttributeTok{decreasing =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{  eigenvalues }\OtherTok{=} \FunctionTok{Re}\NormalTok{(eig}\SpecialCharTok{$}\NormalTok{values[idx])}
+\NormalTok{  P }\OtherTok{=}\NormalTok{ L\_inv }\SpecialCharTok{\%*\%} \FunctionTok{Re}\NormalTok{(eig}\SpecialCharTok{$}\NormalTok{vectors[, idx])}
+  
+\NormalTok{  num\_components }\OtherTok{=} \FunctionTok{min}\NormalTok{(num\_classes }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{, num\_features)}
+\NormalTok{  eigenvalues }\OtherTok{=}\NormalTok{ eigenvalues[}\DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_components]}
+\NormalTok{  P }\OtherTok{=}\NormalTok{ P[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_components, drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{  D }\OtherTok{=}\NormalTok{ eigenvalues }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{(eigenvalues)  }
+  
+\NormalTok{  transform\_data }\OtherTok{=}\NormalTok{ data }\SpecialCharTok{\%*\%}\NormalTok{ P}
+  \FunctionTok{return}\NormalTok{(}\FunctionTok{list}\NormalTok{(}\AttributeTok{mean =}\NormalTok{ mean\_total, }\AttributeTok{P =}\NormalTok{ P, }\AttributeTok{D =}\NormalTok{ D,}\AttributeTok{transform\_data=}\NormalTok{ transform\_data,}\AttributeTok{labels=}\NormalTok{labels))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Test/Train Split}\label{testtrain-split}
+
+The ``train\_test\_split'' function splits a dataset into training and
+testing sets based on a specified ratio.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Train/Test Split}
+\NormalTok{train\_test\_split }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(data, }\AttributeTok{train\_ratio =} \FloatTok{0.8}\NormalTok{, }\AttributeTok{seed =} \ConstantTok{NULL}\NormalTok{) \{}
+  \ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{is.null}\NormalTok{(seed)) \{}
+    \FunctionTok{set.seed}\NormalTok{(seed)}
+\NormalTok{  \}}
+  \CommentTok{\# Split}
+\NormalTok{  n }\OtherTok{=} \FunctionTok{nrow}\NormalTok{(data)}
+\NormalTok{  train\_indices }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\NormalTok{n, }\AttributeTok{size =} \FunctionTok{floor}\NormalTok{(train\_ratio }\SpecialCharTok{*}\NormalTok{ n))}
+\NormalTok{  train\_data }\OtherTok{\textless{}{-}}\NormalTok{ data[train\_indices, , drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]  }\CommentTok{\# Train set}
+\NormalTok{  test\_data }\OtherTok{\textless{}{-}}\NormalTok{ data[}\SpecialCharTok{{-}}\NormalTok{train\_indices, , drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]  }\CommentTok{\# Test set}
+
+  \FunctionTok{return}\NormalTok{(}\FunctionTok{list}\NormalTok{(}\AttributeTok{train =}\NormalTok{ train\_data, }\AttributeTok{test =}\NormalTok{ test\_data))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Distance Metrics}\label{distance-metrics}
+
+In the following chunk, two distance metrics are defined.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Distances}
+
+\CommentTok{\# Euclidean distance}
+\NormalTok{euclidean\_distance }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x, y) \{}
+  \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{sum}\NormalTok{((x }\SpecialCharTok{{-}}\NormalTok{ y)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{\}}
+
+\CommentTok{\# Manhattan distance}
+\NormalTok{manhattan\_distance }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x, y) \{}
+  \FunctionTok{sum}\NormalTok{(}\FunctionTok{abs}\NormalTok{(x }\SpecialCharTok{{-}}\NormalTok{ y))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Classificaion Threshholds}\label{classificaion-threshholds}
+
+The function ``estimate\_thresholds'' calculates thresholds for a number
+of groups per group and returns the threshholds with their corresponding
+group ID. The function that is used for calculation is interchangeable,
+with one defined as the quantile of the empirical distribution of the
+given data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Threshhold functions}
+
+\DocumentationTok{\#\# precentile threshold function}
+\NormalTok{estimate\_threshold\_via\_percentile }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(data, }\AttributeTok{percentile =} \FloatTok{0.90}\NormalTok{, }\AttributeTok{distance\_metric =} \StringTok{"euclidean"}\NormalTok{) \{}
+  \ControlFlowTok{if}\NormalTok{ (distance\_metric }\SpecialCharTok{==} \StringTok{"euclidean"}\NormalTok{) \{}
+\NormalTok{    dist\_1 }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(}\FunctionTok{dist}\NormalTok{(data, }\AttributeTok{method =} \StringTok{"euclidean"}\NormalTok{))}
+\NormalTok{  \} }\ControlFlowTok{else} \ControlFlowTok{if}\NormalTok{ (distance\_metric }\SpecialCharTok{==} \StringTok{"manhattan"}\NormalTok{) \{}
+\NormalTok{    dist\_1 }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(}\FunctionTok{dist}\NormalTok{(data, }\AttributeTok{method =} \StringTok{"manhattan"}\NormalTok{))}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+    \FunctionTok{stop}\NormalTok{(}\StringTok{"Invalid method. Choose either \textquotesingle{}euclidean\textquotesingle{} or \textquotesingle{}manhattan\textquotesingle{}."}\NormalTok{)}
+\NormalTok{  \}}
+  
+\NormalTok{  threshold }\OtherTok{\textless{}{-}} \FunctionTok{quantile}\NormalTok{(dist\_1[}\FunctionTok{upper.tri}\NormalTok{(dist\_1)], percentile)}
+  
+  \FunctionTok{return}\NormalTok{(threshold)}
+\NormalTok{\}}
+
+\DocumentationTok{\#\# generate Treshhold functions}
+\NormalTok{estimate\_thresholds }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(train\_data, estimate\_func, percentile, distance\_metric) \{}
+\NormalTok{  thresholds }\OtherTok{\textless{}{-}} \FunctionTok{numeric}\NormalTok{()}
+\NormalTok{  train\_data\_ids\_unique }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(train\_data[, }\FunctionTok{ncol}\NormalTok{(train\_data)])}
+  
+  \ControlFlowTok{for}\NormalTok{ (id }\ControlFlowTok{in}\NormalTok{ train\_data\_ids\_unique) \{}
+\NormalTok{    train\_data\_grouped }\OtherTok{\textless{}{-}}\NormalTok{ train\_data[train\_data[, }\FunctionTok{ncol}\NormalTok{(train\_data)] }\SpecialCharTok{==}\NormalTok{ id, , drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+    \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{nrow}\NormalTok{(train\_data\_grouped) }\SpecialCharTok{\textgreater{}} \DecValTok{1}\NormalTok{) \{}
+\NormalTok{      thresholds[id] }\OtherTok{\textless{}{-}} \FunctionTok{estimate\_func}\NormalTok{(train\_data\_grouped[,}\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(train\_data\_grouped)],}\AttributeTok{percentile =}\NormalTok{ percentile,}\AttributeTok{distance\_metric =}\NormalTok{ distance\_metric)}
+\NormalTok{    \} }\ControlFlowTok{else}\NormalTok{\{ }\CommentTok{\# drop as to not enough data to set threshold}
+\NormalTok{      train\_data\_ids\_unique }\OtherTok{=}  \FunctionTok{setdiff}\NormalTok{(train\_data\_ids\_unique, id)}
+\NormalTok{    \}}
+\NormalTok{  \}}
+  
+  \FunctionTok{names}\NormalTok{(thresholds) }\OtherTok{\textless{}{-}}\NormalTok{ train\_data\_ids\_unique}
+
+  
+  \FunctionTok{return}\NormalTok{(thresholds)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{KNN Classifier Function}\label{knn-classifier-function}
+
+The ``knn\_classifier'' function classifies test data based on the
+k-nearest neighbors (KNN) algorithm, using a specified distance metric
+and thresholds for each group. It computes distances between each test
+data point and all training data points, then assigns the most frequent
+label among the k-nearest neighbors if the distance threshold is met. If
+no threshold is met, the test data point is assigned to a default group.
+It return a id based classification and a ``binary classification''
+which only considers weather the to be classified element is within the
+data base or not (e.g.~if it meets the treshhold or not).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# KNN Classifier}
+\NormalTok{knn\_classifier }\OtherTok{=} \ControlFlowTok{function}\NormalTok{(test\_data, train\_data, thresholds, }\AttributeTok{dist\_metric =} \StringTok{"euclidean"}\NormalTok{, k, }\AttributeTok{knn\_bool =}\NormalTok{ T)\{}
+  \CommentTok{\# init results array}
+\NormalTok{  predicted\_ids }\OtherTok{=} \FunctionTok{c}\NormalTok{() }
+  
+  \CommentTok{\# for all rows (images) run}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{nrow}\NormalTok{(test\_data)) \{}
+    
+    \DocumentationTok{\#\#\# Prepare Distances}
+    \CommentTok{\# For train data, get true ID and drop id col}
+\NormalTok{    train\_data\_ids }\OtherTok{\textless{}{-}}\NormalTok{ train\_data[, }\FunctionTok{ncol}\NormalTok{(train\_data)]  }\CommentTok{\# Extract ID column}
+\NormalTok{    train\_data\_no\_last\_col }\OtherTok{\textless{}{-}}\NormalTok{ train\_data[, }\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(train\_data), drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+    
+    \CommentTok{\# for test data, get row}
+\NormalTok{    test\_row }\OtherTok{=}\NormalTok{ test\_data[i,]}
+    
+    \CommentTok{\# Compute distances between the test row and each row in the training data and assign IDs}
+\NormalTok{    distances }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(train\_data\_no\_last\_col, }\DecValTok{1}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(train\_row) \{}
+\NormalTok{      test\_row }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(test\_row)}
+\NormalTok{      train\_row }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(train\_row)}
+      
+      \ControlFlowTok{if}\NormalTok{ (dist\_metric }\SpecialCharTok{==} \StringTok{"euclidean"}\NormalTok{) \{}
+        \FunctionTok{return}\NormalTok{(}\FunctionTok{euclidean\_distance}\NormalTok{(test\_row, train\_row))}
+\NormalTok{      \} }\ControlFlowTok{else} \ControlFlowTok{if}\NormalTok{ (dist\_metric }\SpecialCharTok{==} \StringTok{"manhattan"}\NormalTok{) \{}
+        \FunctionTok{return}\NormalTok{(}\FunctionTok{manhattan\_distance}\NormalTok{(test\_row, train\_row))}
+\NormalTok{      \}}
+\NormalTok{    \})}
+    
+    \FunctionTok{names}\NormalTok{(distances) }\OtherTok{\textless{}{-}}\NormalTok{ train\_data\_ids}
+    
+    \DocumentationTok{\#\#\# Classification}
+\NormalTok{    predicted\_label }\OtherTok{\textless{}{-}} \StringTok{"0"}
+    \CommentTok{\# fot all groups IDs, check if threshhold is passed for at least one}
+    \ControlFlowTok{for}\NormalTok{ (train\_ids }\ControlFlowTok{in} \FunctionTok{names}\NormalTok{(thresholds)) \{ }
+      \CommentTok{\# perform knn as soon as distance threshhod is passed for one}
+      \CommentTok{\#print("Check Threshholds")}
+      \CommentTok{\#print(distances[names(distances) == train\_ids])}
+      \CommentTok{\#print(thresholds[train\_ids])}
+      \CommentTok{\#print(any(distances[names(distances) == train\_ids] \textless{} thresholds[train\_ids]))}
+      
+      \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{any}\NormalTok{(distances[}\FunctionTok{names}\NormalTok{(distances) }\SpecialCharTok{==}\NormalTok{ train\_ids] }\SpecialCharTok{\textless{}}\NormalTok{ thresholds[train\_ids])) \{}
+        \ControlFlowTok{if}\NormalTok{ (knn\_bool)\{}
+          
+\NormalTok{          k\_neighbors }\OtherTok{\textless{}{-}} \FunctionTok{order}\NormalTok{(distances)[}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{min}\NormalTok{(k, }\FunctionTok{length}\NormalTok{(distances))] }\CommentTok{\# with k \textgreater{}= training points}
+\NormalTok{          neighbor\_labels }\OtherTok{\textless{}{-}}\NormalTok{ train\_data\_ids[k\_neighbors]  }\CommentTok{\# Get labels of k{-}nearest neighbors}
+          
+          \CommentTok{\# Get most frequent label}
+\NormalTok{          predicted\_label }\OtherTok{\textless{}{-}} \FunctionTok{names}\NormalTok{(}\FunctionTok{sort}\NormalTok{(}\FunctionTok{table}\NormalTok{(neighbor\_labels), }\AttributeTok{decreasing =} \ConstantTok{TRUE}\NormalTok{))[}\DecValTok{1}\NormalTok{]}
+          
+          \CommentTok{\# store result}
+\NormalTok{          predicted\_ids }\OtherTok{=} \FunctionTok{c}\NormalTok{(predicted\_ids, predicted\_label)}
+          \ControlFlowTok{break}  \CommentTok{\# Stop once a group match is found}
+          
+\NormalTok{        \} }\ControlFlowTok{else}\NormalTok{\{ }\CommentTok{\# in case no KNN and only checking if in data or not }
+\NormalTok{          predicted\_label }\OtherTok{=} \DecValTok{1}
+\NormalTok{          predicted\_ids }\OtherTok{=} \FunctionTok{c}\NormalTok{(predicted\_ids, predicted\_label)}
+          \ControlFlowTok{break}
+\NormalTok{        \}}
+\NormalTok{      \}}
+\NormalTok{    \}}
+    \CommentTok{\# if not passing any threshholds, assign group 0 (no group)}
+    \ControlFlowTok{if}\NormalTok{ (predicted\_label }\SpecialCharTok{==} \StringTok{"0"}\NormalTok{) \{}
+\NormalTok{        predicted\_ids }\OtherTok{=} \FunctionTok{c}\NormalTok{(predicted\_ids, predicted\_label)}
+\NormalTok{    \}}
+\NormalTok{  \}}
+  
+  \CommentTok{\# return predictions}
+  \FunctionTok{return}\NormalTok{(predicted\_ids)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Score Classification}\label{score-classification}
+
+The score function calculates performance metrics for both ID
+classification and binary classification. It computes the match and fail
+rates for ID classification, and for binary classification, it
+calculates the false positive and false negative rates using a confusion
+matrix.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Scoring}
+\NormalTok{score }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(df\_id,df\_binary) \{}
+  
+  \DocumentationTok{\#\#\# ID Classification Scoring}
+  
+  \CommentTok{\# match \& fail rate }
+\NormalTok{  match\_rate }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(df\_id}\SpecialCharTok{$}\NormalTok{true }\SpecialCharTok{==}\NormalTok{ df\_id}\SpecialCharTok{$}\NormalTok{predicted)}
+\NormalTok{  fail\_rate }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ match\_rate}
+  
+  \DocumentationTok{\#\#\# Binary Classification Scoring}
+  \CommentTok{\# factorize}
+\NormalTok{  df\_binary}\SpecialCharTok{$}\NormalTok{true }\OtherTok{=} \FunctionTok{factor}\NormalTok{(df\_binary}\SpecialCharTok{$}\NormalTok{true, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\NormalTok{  df\_binary}\SpecialCharTok{$}\NormalTok{predicted }\OtherTok{=} \FunctionTok{factor}\NormalTok{(df\_binary}\SpecialCharTok{$}\NormalTok{predicted, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+
+  \CommentTok{\# confusion with case of only values either 1 or 0}
+\NormalTok{  unique\_vals }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{c}\NormalTok{(df\_binary}\SpecialCharTok{$}\NormalTok{true, df\_binary}\SpecialCharTok{$}\NormalTok{predicted))}
+  \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{all}\NormalTok{(unique\_vals }\SpecialCharTok{==} \DecValTok{1}\NormalTok{) }\SpecialCharTok{|} \FunctionTok{all}\NormalTok{(unique\_vals }\SpecialCharTok{==} \DecValTok{0}\NormalTok{))\{}
+    \FunctionTok{return}\NormalTok{(}\FunctionTok{list}\NormalTok{(}\AttributeTok{binary\_false\_positive\_rate =} \DecValTok{0}\NormalTok{, }
+              \AttributeTok{binary\_false\_negative\_rate =} \DecValTok{0}\NormalTok{,}
+              \AttributeTok{classification\_match\_rate =}\NormalTok{ match\_rate,}
+              \AttributeTok{classification\_fail\_rate =}\NormalTok{ fail\_rate))}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{    conf\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(df\_binary}\SpecialCharTok{$}\NormalTok{true, df\_binary}\SpecialCharTok{$}\NormalTok{predicted)}
+\NormalTok{  \}}
+  
+  \CommentTok{\# Extract values}
+\NormalTok{  TP }\OtherTok{\textless{}{-}}\NormalTok{ conf\_matrix[}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{]  }
+\NormalTok{  TN }\OtherTok{\textless{}{-}}\NormalTok{ conf\_matrix[}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{]  }
+\NormalTok{  FP }\OtherTok{\textless{}{-}}\NormalTok{ conf\_matrix[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{]  }
+\NormalTok{  FN }\OtherTok{\textless{}{-}}\NormalTok{ conf\_matrix[}\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{]}
+  
+  \CommentTok{\# Compute Metrics}
+\NormalTok{  type1\_error }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{((FP }\SpecialCharTok{+}\NormalTok{ TN) }\SpecialCharTok{==} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, FP }\SpecialCharTok{/}\NormalTok{ (FP }\SpecialCharTok{+}\NormalTok{ TN))}
+\NormalTok{  type2\_error }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{((FN }\SpecialCharTok{+}\NormalTok{ TP) }\SpecialCharTok{==} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, FN }\SpecialCharTok{/}\NormalTok{ (FN }\SpecialCharTok{+}\NormalTok{ TP))}
+  
+  
+  \FunctionTok{return}\NormalTok{(}\FunctionTok{list}\NormalTok{(}\AttributeTok{binary\_false\_positive\_rate =}\NormalTok{ type1\_error, }
+              \AttributeTok{binary\_false\_negative\_rate =}\NormalTok{ type2\_error,}
+              \AttributeTok{classification\_match\_rate =}\NormalTok{ match\_rate,}
+              \AttributeTok{classification\_fail\_rate =}\NormalTok{ fail\_rate))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{KNN Pipeline}\label{knn-pipeline}
+
+The classification\_pipeline function performs a full start to finish
+processes for classification. To do so, it processes training and test
+data for classification, optionally applying PCA or FDA for
+dimensionality reduction. It replaces IDs in the test data that are not
+present in the training data with ``0'', estimates classification
+thresholds, and runs a KNN classifier. The function then calculates and
+returns classification results, including match rates and binary
+classification error rates. This pipeline provides a comprehensive
+workflow for preparing data, running classification, and evaluating
+performance.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Pipeline}
+\NormalTok{classification\_pipeline }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(train\_data,}
+\NormalTok{                                    test\_data,}
+\NormalTok{                                    estimate\_func,}
+\NormalTok{                                    percentile,}
+\NormalTok{                                    knn\_k,}
+\NormalTok{                                    dist\_metric,}
+                                    \AttributeTok{expl\_var\_pca =} \FloatTok{0.95}\NormalTok{,}
+                                    \AttributeTok{expl\_var\_fda =} \FloatTok{0.95}\NormalTok{,}
+                                    \AttributeTok{knn\_bool =}\NormalTok{ T,}
+                                    \AttributeTok{pca\_bool =}\NormalTok{ F,}
+                                    \AttributeTok{fda\_bool =}\NormalTok{F) \{}
+  
+  \CommentTok{\# Replace IDs in test\_data that are not in train\_data with "0"}
+\NormalTok{  train\_ids }\OtherTok{\textless{}{-}}\NormalTok{ train\_data[, }\FunctionTok{ncol}\NormalTok{(train\_data)]}
+\NormalTok{  test\_ids }\OtherTok{\textless{}{-}}\NormalTok{ test\_data[, }\FunctionTok{ncol}\NormalTok{(test\_data)]}
+  
+\NormalTok{  test\_data[, }\FunctionTok{ncol}\NormalTok{(test\_data)][}\SpecialCharTok{!}\NormalTok{test\_ids }\SpecialCharTok{\%in\%}\NormalTok{ train\_ids] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{  test\_ids }\OtherTok{\textless{}{-}}\NormalTok{ test\_data[, }\FunctionTok{ncol}\NormalTok{(test\_data)]}
+  
+  \CommentTok{\# run pca if required }
+  \ControlFlowTok{if}\NormalTok{ (pca\_bool)\{}
+    \FunctionTok{print}\NormalTok{(}\StringTok{"\#\#\#\#\#\#\#\# Run PCA \#\#\#\#\#\#\#\#"}\NormalTok{)}
+    
+    \CommentTok{\# Run PCA}
+\NormalTok{    pca\_result }\OtherTok{\textless{}{-}} \FunctionTok{PCA.fun}\NormalTok{(train\_data, }\AttributeTok{matrix\_bool =}\NormalTok{ T)}
+    
+    
+    \CommentTok{\# Get results and get PC\textquotesingle{}s that explain 95\% Variance}
+\NormalTok{    eig\_vecs }\OtherTok{\textless{}{-}}\NormalTok{ pca\_result}\SpecialCharTok{$}\StringTok{"Eigen Vector"}
+\NormalTok{    cumulative\_variance }\OtherTok{\textless{}{-}} \FunctionTok{cumsum}\NormalTok{(pca\_result}\SpecialCharTok{$}\NormalTok{D)}
+\NormalTok{    num\_components\_pca }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(cumulative\_variance }\SpecialCharTok{\textgreater{}=}\NormalTok{ expl\_var\_pca)[}\DecValTok{1}\NormalTok{]}
+    
+    \CommentTok{\# Project data onto selected PCs}
+\NormalTok{    train\_data }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(train\_data[,}\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(train\_data)] }\SpecialCharTok{\%*\%}\NormalTok{ eig\_vecs[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_components\_pca])}
+\NormalTok{    test\_data }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(test\_data[,}\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(test\_data)] }\SpecialCharTok{\%*\%}\NormalTok{ eig\_vecs[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_components\_pca])}
+
+\NormalTok{    train\_data }\OtherTok{=} \FunctionTok{cbind}\NormalTok{(train\_data, train\_ids)}
+\NormalTok{    test\_data }\OtherTok{=} \FunctionTok{cbind}\NormalTok{(test\_data, test\_ids)}
+
+\NormalTok{  \}}
+  
+  \ControlFlowTok{if}\NormalTok{ (fda\_bool)\{}
+    \FunctionTok{print}\NormalTok{(}\StringTok{"\#\#\#\#\#\#\#\# Run FDA \#\#\#\#\#\#\#\#"}\NormalTok{)}
+    
+    \CommentTok{\# run fda}
+\NormalTok{    result\_FDA }\OtherTok{=} \FunctionTok{FDA.fun}\NormalTok{(train\_data[,}\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(train\_data)],train\_ids)}
+    
+    \CommentTok{\# select discriminants according to explained variance}
+\NormalTok{    cumulative\_variance\_FDA }\OtherTok{\textless{}{-}} \FunctionTok{cumsum}\NormalTok{(result\_FDA}\SpecialCharTok{$}\NormalTok{D)}
+\NormalTok{    num\_components\_fda }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(cumulative\_variance\_FDA }\SpecialCharTok{\textgreater{}=}\NormalTok{ expl\_var\_fda)[}\DecValTok{1}\NormalTok{]}
+    
+\NormalTok{    train\_data }\OtherTok{=} \FunctionTok{as.matrix}\NormalTok{(train\_data[,}\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(train\_data)]) }\SpecialCharTok{\%*\%}\NormalTok{ result\_FDA}\SpecialCharTok{$}\NormalTok{P[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_components\_fda]}
+\NormalTok{    test\_data }\OtherTok{=} \FunctionTok{as.matrix}\NormalTok{(test\_data[,}\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(test\_data)]) }\SpecialCharTok{\%*\%}\NormalTok{ result\_FDA}\SpecialCharTok{$}\NormalTok{P[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_components\_fda]}
+  
+\NormalTok{    train\_data }\OtherTok{=} \FunctionTok{cbind}\NormalTok{(train\_data, train\_ids)}
+\NormalTok{    test\_data }\OtherTok{=} \FunctionTok{cbind}\NormalTok{(test\_data, test\_ids)}
+    
+\NormalTok{  \}}
+
+  \FunctionTok{print}\NormalTok{(}\StringTok{"\#\#\#\#\#\#\#\# Estimate Threshholds \#\#\#\#\#\#\#\#"}\NormalTok{)}
+
+  \CommentTok{\# Estimate thresholds}
+\NormalTok{  thresholds }\OtherTok{\textless{}{-}} \FunctionTok{estimate\_thresholds}\NormalTok{(train\_data, }\AttributeTok{estimate\_func =}\NormalTok{ estimate\_func, }\AttributeTok{percentile =}\NormalTok{ percentile,}\AttributeTok{distance\_metric =}\NormalTok{ dist\_metric)}
+  
+  \CommentTok{\# Prepare test data}
+\NormalTok{  true\_test\_ids }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(test\_data[, }\FunctionTok{ncol}\NormalTok{(test\_data), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{])}
+\NormalTok{  test\_data\_input }\OtherTok{\textless{}{-}}\NormalTok{ test\_data[, }\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(test\_data), drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+  
+  \FunctionTok{print}\NormalTok{(}\StringTok{"\#\#\#\#\#\#\#\# Run Classification\#\#\#\#\#\#\#\#"}\NormalTok{)}
+
+  \CommentTok{\# Run KNN classifier}
+\NormalTok{  predicted\_ids }\OtherTok{\textless{}{-}} \FunctionTok{knn\_classifier}\NormalTok{(test\_data\_input, train\_data, }\AttributeTok{thresholds =}\NormalTok{ thresholds, }\AttributeTok{dist\_metric =}\NormalTok{ dist\_metric,}\AttributeTok{k =}\NormalTok{ knn\_k,}\AttributeTok{knn\_bool =}\NormalTok{ knn\_bool)}
+  
+  
+  \CommentTok{\# Merge results}
+\NormalTok{  df\_classification }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+    \AttributeTok{true =} \FunctionTok{as.numeric}\NormalTok{(true\_test\_ids),}
+    \AttributeTok{predicted =} \FunctionTok{as.numeric}\NormalTok{(predicted\_ids)}
+\NormalTok{  )}
+  
+  \CommentTok{\# Derive binary classification [0,1] (if in data set)}
+\NormalTok{  df\_classification\_binary }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{lapply}\NormalTok{(df\_classification, }\ControlFlowTok{function}\NormalTok{(x) }\FunctionTok{ifelse}\NormalTok{(x }\SpecialCharTok{==} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)))}
+  
+  \CommentTok{\# Calculate score}
+\NormalTok{  scores }\OtherTok{\textless{}{-}} \FunctionTok{score}\NormalTok{(}\AttributeTok{df\_id =}\NormalTok{ df\_classification, }\AttributeTok{df\_binary =}\NormalTok{ df\_classification\_binary)}
+  
+  \FunctionTok{print}\NormalTok{(}\StringTok{"\#\#\#\#\#\#\#\# Classification DONE \#\#\#\#\#\#\#\#"}\NormalTok{)}
+
+  \CommentTok{\# Return results}
+  \FunctionTok{return}\NormalTok{(}\FunctionTok{list}\NormalTok{(}
+    \AttributeTok{classification =}\NormalTok{ df\_classification,}
+    \AttributeTok{classification\_binary =}\NormalTok{ df\_classification\_binary,}
+    \AttributeTok{binary\_false\_positive\_rate =}\NormalTok{ scores}\SpecialCharTok{$}\NormalTok{binary\_false\_positive\_rate, }
+    \AttributeTok{binary\_false\_negative\_rate =}\NormalTok{ scores}\SpecialCharTok{$}\NormalTok{binary\_false\_negative\_rate,}
+    \AttributeTok{classification\_match\_rate =}\NormalTok{ scores}\SpecialCharTok{$}\NormalTok{classification\_match\_rate,}
+    \AttributeTok{classification\_fail\_rate =}\NormalTok{ scores}\SpecialCharTok{$}\NormalTok{classification\_fail\_rate}
+\NormalTok{  ))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{K-Fold Cross Validation}\label{k-fold-cross-validation}
+
+The knn\_k\_fold\_cv function performs K-fold cross-validation on a
+dataset using a KNN classifier, with optional PCA or FDA for
+dimensionality reduction. It splits the data into training and testing
+sets for each fold, runs the classification pipeline, and stores the
+results for each fold. It returns the average scores across all folds.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# K fold Cross Validation}
+\NormalTok{knn\_k\_fold\_cv }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(data,}
+\NormalTok{                          folds,}
+\NormalTok{                          k\_CV,}
+\NormalTok{                          estimate\_func, }
+\NormalTok{                          percentile, }
+\NormalTok{                          knn\_k, }
+\NormalTok{                          dist\_metric,}
+                          \AttributeTok{expl\_var\_pca =} \FloatTok{0.95}\NormalTok{,}
+                          \AttributeTok{expl\_var\_fda =} \FloatTok{0.95}\NormalTok{,}
+\NormalTok{                          knn\_bool,}
+                          \AttributeTok{pca\_bool =}\NormalTok{ F,}
+                          \AttributeTok{fda\_bool =}\NormalTok{ F,}
+                          \AttributeTok{print\_bool =}\NormalTok{ F) \{}
+
+  
+\NormalTok{  all\_results }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{()}
+  \CommentTok{\# Perform K{-}fold cross{-}validation}
+  \ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{k\_CV) \{}
+    
+    \CommentTok{\# Split data into training and testing sets based on the fold}
+\NormalTok{    train\_data }\OtherTok{\textless{}{-}}\NormalTok{ data[folds }\SpecialCharTok{!=}\NormalTok{ i, ]}
+\NormalTok{    test\_data }\OtherTok{\textless{}{-}}\NormalTok{ data[folds }\SpecialCharTok{==}\NormalTok{ i, ]}
+    
+    \CommentTok{\# Run the classification pipeline}
+\NormalTok{    results }\OtherTok{\textless{}{-}} \FunctionTok{classification\_pipeline}\NormalTok{(train\_data, }
+\NormalTok{                                       test\_data,}
+                                       \AttributeTok{estimate\_func =}\NormalTok{ estimate\_func,}
+                                       \AttributeTok{percentile =}\NormalTok{ percentile,}
+                                       \AttributeTok{knn\_k =}\NormalTok{ knn\_k ,}
+                                       \AttributeTok{dist\_metric =}\NormalTok{ dist\_metric,}
+\NormalTok{                                       expl\_var\_pca,}
+\NormalTok{                                       expl\_var\_fda,}
+\NormalTok{                                       knn\_bool,}
+\NormalTok{                                       pca\_bool,}
+\NormalTok{                                       fda\_bool)}
+    
+    
+    \CommentTok{\# Store results for this fold}
+\NormalTok{    all\_results[[i]] }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}
+      \AttributeTok{binary\_false\_positive\_rate =}\NormalTok{ results}\SpecialCharTok{$}\NormalTok{binary\_false\_positive\_rate,}
+      \AttributeTok{binary\_false\_negative\_rate =}\NormalTok{ results}\SpecialCharTok{$}\NormalTok{binary\_false\_negative\_rate,}
+      \AttributeTok{classification\_match\_rate =}\NormalTok{ results}\SpecialCharTok{$}\NormalTok{classification\_match\_rate,}
+      \AttributeTok{classification\_fail\_rate =}\NormalTok{ results}\SpecialCharTok{$}\NormalTok{classification\_fail\_rate}
+\NormalTok{    )}
+\NormalTok{  \}}
+  
+  \CommentTok{\# Store means}
+\NormalTok{  binary\_false\_positive\_rate\_mean }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{sapply}\NormalTok{(all\_results, }\ControlFlowTok{function}\NormalTok{(x) x}\SpecialCharTok{$}\NormalTok{binary\_false\_positive\_rate))}
+\NormalTok{  binary\_false\_negative\_rate\_mean }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{sapply}\NormalTok{(all\_results, }\ControlFlowTok{function}\NormalTok{(x) x}\SpecialCharTok{$}\NormalTok{binary\_false\_negative\_rate))}
+\NormalTok{  classification\_match\_rate\_mean }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{sapply}\NormalTok{(all\_results, }\ControlFlowTok{function}\NormalTok{(x) x}\SpecialCharTok{$}\NormalTok{classification\_match\_rate))}
+\NormalTok{  classification\_fail\_rate\_mean }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{sapply}\NormalTok{(all\_results, }\ControlFlowTok{function}\NormalTok{(x) x}\SpecialCharTok{$}\NormalTok{classification\_fail\_rate))}
+
+\NormalTok{  avg\_scores }\OtherTok{=} \FunctionTok{list}\NormalTok{(}\AttributeTok{binary\_false\_positive\_rate\_mean =}\NormalTok{ binary\_false\_positive\_rate\_mean,}
+                     \AttributeTok{binary\_false\_negative\_rate\_mean =}\NormalTok{ binary\_false\_negative\_rate\_mean,}
+                     \AttributeTok{classification\_match\_rate\_mean =}\NormalTok{ classification\_match\_rate\_mean,}
+                     \AttributeTok{classification\_fail\_rate\_mean =}\NormalTok{ classification\_fail\_rate\_mean)}
+  
+  \CommentTok{\# Print all average metrics}
+  \ControlFlowTok{if}\NormalTok{ (print\_bool)\{}
+    \FunctionTok{cat}\NormalTok{(}\StringTok{"Average scores across all folds:"}\NormalTok{)}
+    \FunctionTok{cat}\NormalTok{(avg\_scores)}
+\NormalTok{  \}}
+
+  \FunctionTok{return}\NormalTok{(avg\_scores)}\CommentTok{\#, scores\_by\_fold=all\_results))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{KNN Grid Search
+Optimization}\label{knn-grid-search-optimization}
+
+The CV\_grid\_search function performs a grid search over specified
+hyperparameters for a KNN classifier, using K-fold cross-validation to
+evaluate each combination. It iterates over different values of knn\_k,
+percentile, and dist\_metric, storing the average performance metrics
+for each combination. Finally, it identifies and prints the best
+hyperparameters based on classification match rate and binary false
+negative rate, returning the results as a data frame along with the best
+parameters.The parameters correspond to different parts of the
+classification process, e.g.~percentile\_values correspond to the chosen
+treshold (e.g binary classification) and k\_knn to the id based
+classification, while the distance metric affects both. Therefore, they
+either use the binary classification scores or the id match rate as
+metrics for the optimization.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{CV\_grid\_search }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(data, }
+\NormalTok{                           knn\_k\_values, }
+\NormalTok{                           percentile\_values, }
+\NormalTok{                           dist\_metrics,}
+                           \AttributeTok{expl\_var\_pca =} \FloatTok{0.95}\NormalTok{,}
+                           \AttributeTok{expl\_var\_fda =} \FloatTok{0.95}\NormalTok{,}
+                           \AttributeTok{k\_CV =} \DecValTok{5}\NormalTok{,}
+                           \AttributeTok{knn\_bool =}\NormalTok{ T,}
+                           \AttributeTok{pca\_bool =}\NormalTok{ F,}
+                           \AttributeTok{fda\_bool =}\NormalTok{ F) \{}
+  \CommentTok{\# Store results}
+\NormalTok{  results\_list }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{()}
+  
+\NormalTok{  folds }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\NormalTok{k\_CV, }\FunctionTok{nrow}\NormalTok{(data), }\AttributeTok{replace =} \ConstantTok{TRUE}\NormalTok{)}
+
+  \CommentTok{\# Perform grid search}
+  \ControlFlowTok{for}\NormalTok{ (knn\_k }\ControlFlowTok{in}\NormalTok{ knn\_k\_values) \{}
+    \ControlFlowTok{for}\NormalTok{ (percentile }\ControlFlowTok{in}\NormalTok{ percentile\_values) \{}
+      \ControlFlowTok{for}\NormalTok{ (dist\_metric }\ControlFlowTok{in}\NormalTok{ dist\_metrics) \{}
+            \CommentTok{\# Run cross{-}validation}
+        \FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(knn\_k,percentile,dist\_metric))}
+\NormalTok{            avg\_scores }\OtherTok{\textless{}{-}} \FunctionTok{knn\_k\_fold\_cv}\NormalTok{(data,}
+\NormalTok{                                        folds,}
+                                        \AttributeTok{k\_CV =}\NormalTok{ k\_CV,}
+                                        \AttributeTok{estimate\_func =}\NormalTok{ estimate\_threshold\_via\_percentile,}
+                                        \AttributeTok{percentile =}\NormalTok{ percentile,}
+                                        \AttributeTok{knn\_k =}\NormalTok{ knn\_k,}
+                                        \AttributeTok{dist\_metric =}\NormalTok{ dist\_metric,}
+                                        \AttributeTok{expl\_var\_pca =}\NormalTok{ expl\_var\_pca,}
+                                        \AttributeTok{expl\_var\_fda =}\NormalTok{ expl\_var\_fda,}
+\NormalTok{                                        knn\_bool,}
+\NormalTok{                                        pca\_bool,}
+\NormalTok{                                        fda\_bool)}
+            \FunctionTok{print}\NormalTok{(avg\_scores)}
+        
+            \CommentTok{\# Store results}
+\NormalTok{            results\_list[[}\FunctionTok{paste}\NormalTok{(knn\_k, percentile, dist\_metric, }\AttributeTok{sep=}\StringTok{"\_"}\NormalTok{)]] }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}
+              \AttributeTok{knn\_k =}\NormalTok{ knn\_k,}
+              \AttributeTok{percentile =}\NormalTok{ percentile,}
+              \AttributeTok{dist\_metric =}\NormalTok{ dist\_metric,}
+              \AttributeTok{expl\_var\_pca =}\NormalTok{ expl\_var\_pca,}
+              \AttributeTok{expl\_var\_fda =}\NormalTok{ expl\_var\_fda,}
+              \AttributeTok{binary\_false\_positive\_rate\_mean =}\NormalTok{ avg\_scores}\SpecialCharTok{$}\NormalTok{binary\_false\_positive\_rate\_mean,}
+              \AttributeTok{binary\_false\_negative\_rate\_mean =}\NormalTok{ avg\_scores}\SpecialCharTok{$}\NormalTok{binary\_false\_negative\_rate\_mean,}
+              \AttributeTok{classification\_match\_rate\_mean =}\NormalTok{ avg\_scores}\SpecialCharTok{$}\NormalTok{classification\_match\_rate\_mean,}
+              \AttributeTok{classification\_fail\_rate\_mean =}\NormalTok{ avg\_scores}\SpecialCharTok{$}\NormalTok{classification\_fail\_rate\_mean}
+\NormalTok{            )}
+\NormalTok{      \}}
+\NormalTok{    \}}
+\NormalTok{    \}}
+  
+  \CommentTok{\# Convert results to data frame}
+\NormalTok{  results\_df }\OtherTok{\textless{}{-}} \FunctionTok{do.call}\NormalTok{(rbind, }\FunctionTok{lapply}\NormalTok{(results\_list, as.data.frame))}
+  
+  \CommentTok{\# Find the best parameters for threshold and for knn}
+\NormalTok{  best\_params\_knn }\OtherTok{\textless{}{-}}\NormalTok{ results\_df[}\FunctionTok{which.max}\NormalTok{(results\_df}\SpecialCharTok{$}\NormalTok{classification\_match\_rate\_mean), ]}
+\NormalTok{  best\_params\_binary }\OtherTok{\textless{}{-}}\NormalTok{ results\_df[}\FunctionTok{which.min}\NormalTok{(results\_df}\SpecialCharTok{$}\NormalTok{binary\_false\_negative\_rate\_mean), ]}
+  
+  \CommentTok{\# Print best hyperparameters in a table}
+  \FunctionTok{print}\NormalTok{(}\StringTok{"\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\# Best Hyperparameters \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#"}\NormalTok{)}
+\NormalTok{  best\_params }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+    \AttributeTok{Metric =} \FunctionTok{c}\NormalTok{(}\StringTok{"Distance Metric"}\NormalTok{, }\StringTok{"Percentile for Quantile Threshold"}\NormalTok{, }\StringTok{"KNN K nearest neighbors"}\NormalTok{),}
+    \AttributeTok{Value =} \FunctionTok{c}\NormalTok{(best\_params\_knn}\SpecialCharTok{$}\NormalTok{dist\_metric, best\_params\_binary}\SpecialCharTok{$}\NormalTok{percentile, best\_params\_knn}\SpecialCharTok{$}\NormalTok{knn\_k)}
+\NormalTok{  )}
+  
+\NormalTok{  table\_with\_best\_params }\OtherTok{=}\NormalTok{ knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(best\_params, }\AttributeTok{col.names =} \FunctionTok{c}\NormalTok{(}\StringTok{"Parameter"}\NormalTok{, }\StringTok{"Value"}\NormalTok{), }\AttributeTok{caption =} \StringTok{"Best Hyperparameters"}\NormalTok{)}
+
+  \FunctionTok{return}\NormalTok{(}\FunctionTok{list}\NormalTok{(}\AttributeTok{results\_df =}\NormalTok{ results\_df, }
+              \AttributeTok{table\_with\_best\_params =}\NormalTok{ table\_with\_best\_params))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Start-to-finish
+Classification}\label{start-to-finish-classification}
+
+The ``knn\_classifier\_full'' function is a container for the full
+classification pipeline with the added step of loading train and test
+data added based on path to corresponding directories. It is designed
+for the final application of the classification to test or new data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Predict for new data}
+\NormalTok{knn\_classifier\_full }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(path\_train, }
+\NormalTok{                           path\_test,                               }
+\NormalTok{                           dist\_metric,}
+\NormalTok{                           knn\_k,}
+\NormalTok{                           result, }
+                           \AttributeTok{estimate\_func =}\NormalTok{ estimate\_threshold\_via\_percentile,}
+                           \AttributeTok{percentile =}\NormalTok{ percentile,}
+\NormalTok{                           expl\_var\_pca,}
+\NormalTok{                           expl\_var\_fda,}
+\NormalTok{                           pca\_bool,}
+\NormalTok{                           fda\_bool) \{}
+
+  
+
+  \FunctionTok{print}\NormalTok{(}\StringTok{"\#\#\#\#\#\#\#\# Read Data \#\#\#\#\#\#\#\#"}\NormalTok{)}
+\NormalTok{  data\_train }\OtherTok{=} \FunctionTok{read\_all\_images}\NormalTok{(path\_train)}
+\NormalTok{  data\_test }\OtherTok{=} \FunctionTok{read\_all\_images}\NormalTok{(path\_test)}
+  
+\NormalTok{  image\_names\_test }\OtherTok{=}\NormalTok{ data\_test}\SpecialCharTok{$}\NormalTok{ID}
+  
+\NormalTok{  data\_train\_labels }\OtherTok{\textless{}{-}}\NormalTok{ data\_train}\SpecialCharTok{$}\NormalTok{Label}
+\NormalTok{  data\_test\_labels }\OtherTok{\textless{}{-}}\NormalTok{ data\_test}\SpecialCharTok{$}\NormalTok{Label  }
+
+\NormalTok{  data\_train }\OtherTok{=}\NormalTok{ data\_train }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{ID)}
+\NormalTok{  data\_test }\OtherTok{=}\NormalTok{ data\_test }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{ID)}
+  
+\NormalTok{  data\_train }\OtherTok{=} \FunctionTok{as.matrix}\NormalTok{(data\_train)}
+\NormalTok{  data\_test }\OtherTok{=} \FunctionTok{as.matrix}\NormalTok{(data\_test)}
+  
+\NormalTok{  data\_train }\OtherTok{=} \FunctionTok{apply}\NormalTok{(data\_train, }\DecValTok{2}\NormalTok{, as.numeric)}
+\NormalTok{  data\_test }\OtherTok{=} \FunctionTok{apply}\NormalTok{(data\_test, }\DecValTok{2}\NormalTok{, as.numeric)}
+
+  
+  \FunctionTok{print}\NormalTok{(}\StringTok{"\#\#\#\#\#\#\#\# Start Classification Pipeline \#\#\#\#\#\#\#\#"}\NormalTok{)}
+\NormalTok{  classification\_result }\OtherTok{=} \FunctionTok{classification\_pipeline}\NormalTok{(}\AttributeTok{train\_data =}\NormalTok{ data\_train,}
+                                    \AttributeTok{test\_data =}\NormalTok{ data\_test,}
+                                    \AttributeTok{estimate\_func =}\NormalTok{ estimate\_func,}
+                                    \AttributeTok{percentile =}\NormalTok{ percentile,}
+                                    \AttributeTok{knn\_k =}\NormalTok{ knn\_k,}
+                                    \AttributeTok{dist\_metric =}\NormalTok{ dist\_metric,}
+                                    \AttributeTok{expl\_var\_pca =}\NormalTok{ expl\_var\_pca,}
+                                    \AttributeTok{expl\_var\_fda =}\NormalTok{ expl\_var\_pca,}
+                                    \AttributeTok{pca\_bool =}\NormalTok{ pca\_bool,}
+                                    \AttributeTok{fda\_bool =}\NormalTok{ fda\_bool)}
+  
+\NormalTok{  classification\_result}\SpecialCharTok{$}\NormalTok{classification }\OtherTok{=} \FunctionTok{cbind}\NormalTok{(image\_names\_test,classification\_result}\SpecialCharTok{$}\NormalTok{classification)}
+\NormalTok{  classification\_result}\SpecialCharTok{$}\NormalTok{classification\_binary }\OtherTok{=} \FunctionTok{cbind}\NormalTok{(image\_names\_test,classification\_result}\SpecialCharTok{$}\NormalTok{classification\_binary)}
+
+  
+  \CommentTok{\# Return result}
+  \FunctionTok{return}\NormalTok{(classification\_result)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Run Codes}\label{run-codes}
+
+The following section now contains the excecution of the previous codes
+leading towards optimal classification.
+
+\subsection{Load Data}\label{load-data}
+
+We start by loading the data and doing some basic data manipulation.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# load data}
+\NormalTok{folder\_path }\OtherTok{=} \StringTok{"Training\_alpha"}
+\NormalTok{data }\OtherTok{=} \FunctionTok{read\_all\_images}\NormalTok{(folder\_path)}
+
+\NormalTok{labels }\OtherTok{\textless{}{-}}\NormalTok{ data}\SpecialCharTok{$}\NormalTok{Label  }
+\NormalTok{image\_names }\OtherTok{=}\NormalTok{ data}\SpecialCharTok{$}\NormalTok{ID}
+
+\CommentTok{\# turn into matrix for some application}
+\NormalTok{data\_asmatrix  }\OtherTok{=} \FunctionTok{as.matrix}\NormalTok{(data }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{ID))}
+\NormalTok{data\_asmatrix }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(data\_asmatrix, }\DecValTok{2}\NormalTok{, as.numeric)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Classification on Raw Data
+(Part-A-1)}\label{classification-on-raw-data-part-a-1}
+
+We start out by attempting to classify on the raw data. To get a feeling
+for the distances between the images of the same person, we plot the KDE
+of the distributions of the pairwise distances for both
+within-class-distance (ID's 1-m) and the outside of class distances
+(ID=0), e.g.~distances between all elements in one class with all
+elements of all other classes but not with elements from its own class.
+The result shows a somewhat well divide between Out-of-class distances
+and In-Class Distances, with however some In-Class Distances moving in
+similar distance value range as the Out-of-Class Distances. This shows
+that the binary classification will probably suffer from some
+missclassifications.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{distance\_distributions}\NormalTok{(data\_asmatrix, }\AttributeTok{distance\_metric =} \StringTok{"euclidean"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{assignment_1_files/figure-latex/unnamed-chunk-16-1.pdf}}
+
+With no other Steps required, we directly run the classification
+algorithm, using the implemented Cross-Validation grid search algorithm
+to first find optimal hyperparameters. According to the Cross
+Validation, the euclidean distance with a Quantile Threshhold of .95 and
+3 nearest neighbors are optimal.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Run grid Search to optimize Hyperparameters}
+\CommentTok{\# }\AlertTok{WARNING}\CommentTok{: This code takes approx 20 min to excecute}
+\NormalTok{CV\_grid\_search\_result\_RAW }\OtherTok{\textless{}{-}} \FunctionTok{CV\_grid\_search}\NormalTok{(data\_asmatrix,}
+                                        \AttributeTok{k\_CV =} \DecValTok{5}\NormalTok{,}
+                                        \AttributeTok{knn\_k\_values =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{), }
+                                        \AttributeTok{percentile\_values =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.9}\NormalTok{, }\FloatTok{0.95}\NormalTok{), }
+                                        \AttributeTok{dist\_metrics =} \FunctionTok{c}\NormalTok{(}\StringTok{"euclidean"}\NormalTok{, }\StringTok{"manhattan"}\NormalTok{),}
+                                        \AttributeTok{knn\_bool =}\NormalTok{ T)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "3 0.9 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+## 
+## [1] "3 0.9 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.06666667
+## 
+## $classification_match_rate_mean
+## [1] 0.9333333
+## 
+## $classification_fail_rate_mean
+## [1] 0.06666667
+## 
+## [1] "3 0.95 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+## 
+## [1] "3 0.95 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.06666667
+## 
+## $classification_match_rate_mean
+## [1] 0.9333333
+## 
+## $classification_fail_rate_mean
+## [1] 0.06666667
+## 
+## [1] "4 0.9 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+## 
+## [1] "4 0.9 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.06666667
+## 
+## $classification_match_rate_mean
+## [1] 0.9333333
+## 
+## $classification_fail_rate_mean
+## [1] 0.06666667
+## 
+## [1] "4 0.95 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+## 
+## [1] "4 0.95 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.06666667
+## 
+## $classification_match_rate_mean
+## [1] 0.9333333
+## 
+## $classification_fail_rate_mean
+## [1] 0.06666667
+## 
+## [1] "5 0.9 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 0.9666667
+## 
+## $classification_fail_rate_mean
+## [1] 0.03333333
+## 
+## [1] "5 0.9 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.06666667
+## 
+## $classification_match_rate_mean
+## [1] 0.9
+## 
+## $classification_fail_rate_mean
+## [1] 0.1
+## 
+## [1] "5 0.95 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 0.9666667
+## 
+## $classification_fail_rate_mean
+## [1] 0.03333333
+## 
+## [1] "5 0.95 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.06666667
+## 
+## $classification_match_rate_mean
+## [1] 0.9
+## 
+## $classification_fail_rate_mean
+## [1] 0.1
+## 
+## [1] "#################### Best Hyperparameters ####################"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(CV\_grid\_search\_result\_RAW}\SpecialCharTok{$}\NormalTok{table\_with\_best\_params)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## 
+## Table: Best Hyperparameters
+## 
+## |Parameter                         |Value     |
+## |:---------------------------------|:---------|
+## |Distance Metric                   |euclidean |
+## |Percentile for Quantile Threshold |0.9       |
+## |KNN K nearest neighbors           |3         |
+\end{verbatim}
+
+Having found the optimal hyperparameters, we rerun the crossvalidation
+to get the expected performance under these hyperparameters.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Define folds for this and all other Cross falidations}
+\NormalTok{k\_CV }\OtherTok{=} \DecValTok{5}
+\NormalTok{folds }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\NormalTok{k\_CV, }\FunctionTok{nrow}\NormalTok{(data\_asmatrix), }\AttributeTok{replace =} \ConstantTok{TRUE}\NormalTok{)}
+
+\DocumentationTok{\#\#\# Run CV for optimal parameters to get scores}
+\NormalTok{avg\_scores\_CV\_raw }\OtherTok{\textless{}{-}} \FunctionTok{knn\_k\_fold\_cv}\NormalTok{(data\_asmatrix,}
+\NormalTok{                            folds,}
+                            \AttributeTok{k\_CV =}\NormalTok{ k\_CV,}
+                            \AttributeTok{estimate\_func =}\NormalTok{ estimate\_threshold\_via\_percentile,}
+                            \AttributeTok{percentile =} \FloatTok{0.9}\NormalTok{,}
+                            \AttributeTok{knn\_k =} \DecValTok{3}\NormalTok{,}
+                            \AttributeTok{dist\_metric =} \StringTok{"euclidean"}\NormalTok{,}
+                            \AttributeTok{knn\_bool =}\NormalTok{ T,}
+                            \AttributeTok{pca\_bool =}\NormalTok{ F,}
+                            \AttributeTok{fda\_bool =}\NormalTok{ F)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{avg\_scores\_CV\_raw}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+\end{verbatim}
+
+\subsection{Classification on PCA-Data
+(Part-A-2)}\label{classification-on-pca-data-part-a-2}
+
+To now perform classification on the dimension reduced Data via PCA, we
+first need to apply the PCA. We start by applying the PCA function
+defined in the previous chapter and validate the results using the base
+R prcomp function.
+
+If we compare the PCA function we created with prcomp(), we can see a
+significant difference in execution time and system resource usage. This
+is because the base function assumes that \(n >> p\), but for the type
+of data we are working with, this approach is less optimal. Instead, we
+use a function that is optimized for cases where \(n <<p\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Run manual and baseR PCA }
+\FunctionTok{print}\NormalTok{(}\FunctionTok{system.time}\NormalTok{(}\FunctionTok{PCA.fun}\NormalTok{(data)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]     30 108000
+##    user  system elapsed 
+##   1.026   0.064   1.095
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{PCA\_result }\OtherTok{=} \FunctionTok{PCA.fun}\NormalTok{(data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]     30 108000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\FunctionTok{system.time}\NormalTok{(}\FunctionTok{prcomp}\NormalTok{(data\_asmatrix[,}\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(data\_asmatrix)],}\AttributeTok{scale. =}\NormalTok{ T)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    user  system elapsed 
+##   1.028   0.052   1.082
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{compare\_pc }\OtherTok{=} \FunctionTok{prcomp}\NormalTok{(data\_asmatrix[,}\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(data\_asmatrix)],}\AttributeTok{scale. =}\NormalTok{ T)}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{cumsum}\NormalTok{(compare\_pc}\SpecialCharTok{$}\NormalTok{sdev}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(compare\_pc}\SpecialCharTok{$}\NormalTok{sdev}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.3466752 0.5420712 0.7196424 0.8267396 0.8774689 0.8998007 0.9142954
+##  [8] 0.9261299 0.9366482 0.9465302 0.9541983 0.9607310 0.9666656 0.9717600
+## [15] 0.9763597 0.9803591 0.9833107 0.9859070 0.9881722 0.9898820 0.9914831
+## [22] 0.9928554 0.9941246 0.9952482 0.9963523 0.9973780 0.9983229 0.9992331
+## [29] 1.0000000 1.0000000
+\end{verbatim}
+
+When comparing the eigenvalues, our custom function required fewer
+eigenvalues to achieve the same explained variance. In the graph you can
+see that if we want to get close to 90\% of the variance of the data we
+only need to get 25 principal components.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Components =} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(PCA\_result}\SpecialCharTok{$}\NormalTok{D),}
+  \AttributeTok{CumulativeVariance =} \FunctionTok{cumsum}\NormalTok{(PCA\_result}\SpecialCharTok{$}\NormalTok{D)}
+\NormalTok{)}
+
+\CommentTok{\# Plot the cumulative explained variance}
+\FunctionTok{ggplot}\NormalTok{(df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Components, }\AttributeTok{y =}\NormalTok{ CumulativeVariance)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Cumulative Explained Variance"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Principal Components"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Cumulative Variance Explained"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{assignment_1_files/figure-latex/unnamed-chunk-20-1.pdf}}
+
+With the PCA successfully performed, corresponding to the plots shown
+above, we decide to fix 90 percent explained Variance as hyper parameter
+for the PCA and apply perform the projection of the data with the
+identified Principal Components.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Get results and get PC\textquotesingle{}s that explain 95\% Variance}
+\NormalTok{eig\_vecs }\OtherTok{\textless{}{-}}\NormalTok{ PCA\_result}\SpecialCharTok{$}\StringTok{"Eigen Vector"}
+\NormalTok{cumulative\_variance }\OtherTok{\textless{}{-}} \FunctionTok{cumsum}\NormalTok{(PCA\_result}\SpecialCharTok{$}\NormalTok{D)}
+\NormalTok{num\_components }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(cumulative\_variance }\SpecialCharTok{\textgreater{}=} \FloatTok{0.95}\NormalTok{)[}\DecValTok{1}\NormalTok{]}
+
+\CommentTok{\# Project data onto selected PCs}
+\NormalTok{data\_reduced\_PCA }\OtherTok{\textless{}{-}}\NormalTok{ data\_asmatrix[,}\SpecialCharTok{{-}}\FunctionTok{ncol}\NormalTok{(data\_asmatrix)] }\SpecialCharTok{\%*\%}\NormalTok{ eig\_vecs[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_components]}
+\NormalTok{data\_reduced\_PCA\_labeled }\OtherTok{=} \FunctionTok{cbind}\NormalTok{(data\_reduced\_PCA, labels) }
+\end{Highlighting}
+\end{Shaded}
+
+Using the PDA-reduced new data we can again plot the distance
+distributions and now see how the area of overlap between
+in-class-distances and out-of-class distances was already decreased by
+the PCA, optentially improving classification results.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{distance\_distributions}\NormalTok{(data\_reduced\_PCA\_labeled, }\AttributeTok{distance\_metric =} \StringTok{"euclidean"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{assignment_1_files/figure-latex/unnamed-chunk-22-1.pdf}}
+
+To then proceed with classification, we again identify the optimal
+hyperparameters using Cross Validation Grid search. The result show that
+againthe euclidean distance with a Quantile Threshhold of .95 and 3
+nearest neighbors are optimal.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Run grid Search to optimize Hyperparameters}
+\NormalTok{CV\_grid\_search\_result\_PCA }\OtherTok{\textless{}{-}} \FunctionTok{CV\_grid\_search}\NormalTok{(data\_reduced\_PCA\_labeled,}
+                                        \AttributeTok{k\_CV =} \DecValTok{5}\NormalTok{,}
+                                        \AttributeTok{knn\_k\_values =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{), }
+                                        \AttributeTok{percentile\_values =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.9}\NormalTok{, }\FloatTok{0.95}\NormalTok{, }\FloatTok{0.99}\NormalTok{), }
+                                        \AttributeTok{dist\_metrics =} \FunctionTok{c}\NormalTok{(}\StringTok{"euclidean"}\NormalTok{, }\StringTok{"manhattan"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "3 0.9 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.08571429
+## 
+## $classification_match_rate_mean
+## [1] 0.9142857
+## 
+## $classification_fail_rate_mean
+## [1] 0.08571429
+## 
+## [1] "3 0.9 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.05714286
+## 
+## $classification_match_rate_mean
+## [1] 0.9428571
+## 
+## $classification_fail_rate_mean
+## [1] 0.05714286
+## 
+## [1] "3 0.95 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.08571429
+## 
+## $classification_match_rate_mean
+## [1] 0.9142857
+## 
+## $classification_fail_rate_mean
+## [1] 0.08571429
+## 
+## [1] "3 0.95 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.05714286
+## 
+## $classification_match_rate_mean
+## [1] 0.9428571
+## 
+## $classification_fail_rate_mean
+## [1] 0.05714286
+## 
+## [1] "3 0.99 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.08571429
+## 
+## $classification_match_rate_mean
+## [1] 0.9142857
+## 
+## $classification_fail_rate_mean
+## [1] 0.08571429
+## 
+## [1] "3 0.99 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.05714286
+## 
+## $classification_match_rate_mean
+## [1] 0.9428571
+## 
+## $classification_fail_rate_mean
+## [1] 0.05714286
+## 
+## [1] "4 0.9 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.08571429
+## 
+## $classification_match_rate_mean
+## [1] 0.9142857
+## 
+## $classification_fail_rate_mean
+## [1] 0.08571429
+## 
+## [1] "4 0.9 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.05714286
+## 
+## $classification_match_rate_mean
+## [1] 0.9428571
+## 
+## $classification_fail_rate_mean
+## [1] 0.05714286
+## 
+## [1] "4 0.95 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.08571429
+## 
+## $classification_match_rate_mean
+## [1] 0.9142857
+## 
+## $classification_fail_rate_mean
+## [1] 0.08571429
+## 
+## [1] "4 0.95 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.05714286
+## 
+## $classification_match_rate_mean
+## [1] 0.9428571
+## 
+## $classification_fail_rate_mean
+## [1] 0.05714286
+## 
+## [1] "4 0.99 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.08571429
+## 
+## $classification_match_rate_mean
+## [1] 0.9142857
+## 
+## $classification_fail_rate_mean
+## [1] 0.08571429
+## 
+## [1] "4 0.99 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.05714286
+## 
+## $classification_match_rate_mean
+## [1] 0.9428571
+## 
+## $classification_fail_rate_mean
+## [1] 0.05714286
+## 
+## [1] "5 0.9 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.08571429
+## 
+## $classification_match_rate_mean
+## [1] 0.8285714
+## 
+## $classification_fail_rate_mean
+## [1] 0.1714286
+## 
+## [1] "5 0.9 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.05714286
+## 
+## $classification_match_rate_mean
+## [1] 0.8571429
+## 
+## $classification_fail_rate_mean
+## [1] 0.1428571
+## 
+## [1] "5 0.95 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.08571429
+## 
+## $classification_match_rate_mean
+## [1] 0.8285714
+## 
+## $classification_fail_rate_mean
+## [1] 0.1714286
+## 
+## [1] "5 0.95 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.05714286
+## 
+## $classification_match_rate_mean
+## [1] 0.8571429
+## 
+## $classification_fail_rate_mean
+## [1] 0.1428571
+## 
+## [1] "5 0.99 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.08571429
+## 
+## $classification_match_rate_mean
+## [1] 0.8285714
+## 
+## $classification_fail_rate_mean
+## [1] 0.1714286
+## 
+## [1] "5 0.99 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.05714286
+## 
+## $classification_match_rate_mean
+## [1] 0.8571429
+## 
+## $classification_fail_rate_mean
+## [1] 0.1428571
+## 
+## [1] "#################### Best Hyperparameters ####################"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(CV\_grid\_search\_result\_PCA}\SpecialCharTok{$}\NormalTok{table\_with\_best\_params)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## 
+## Table: Best Hyperparameters
+## 
+## |Parameter                         |Value     |
+## |:---------------------------------|:---------|
+## |Distance Metric                   |manhattan |
+## |Percentile for Quantile Threshold |0.9       |
+## |KNN K nearest neighbors           |3         |
+\end{verbatim}
+
+And also, like previous, we perform a last CV with the as optimal
+determined parameters.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Run CV for optimal parameters to get scores}
+\NormalTok{k\_CV }\OtherTok{=} \DecValTok{5}
+\NormalTok{avg\_scores\_CV\_PCA }\OtherTok{\textless{}{-}} \FunctionTok{knn\_k\_fold\_cv}\NormalTok{(data\_reduced\_PCA\_labeled,}
+\NormalTok{                            folds,}
+                            \AttributeTok{k\_CV =}\NormalTok{ k\_CV,}
+                            \AttributeTok{estimate\_func =}\NormalTok{ estimate\_threshold\_via\_percentile,}
+                            \AttributeTok{percentile =} \FloatTok{0.9}\NormalTok{,}
+                            \AttributeTok{knn\_k =} \DecValTok{3}\NormalTok{,}
+                            \AttributeTok{dist\_metric =} \StringTok{"euclidean"}\NormalTok{,}
+                            \AttributeTok{knn\_bool =}\NormalTok{ T,}
+                            \AttributeTok{pca\_bool =}\NormalTok{ F,}
+                            \AttributeTok{fda\_bool =}\NormalTok{ F)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{avg\_scores\_CV\_PCA}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+\end{verbatim}
+
+\subsection{Classification on FDA + PCA Data (Part
+B)}\label{classification-on-fda-pca-data-part-b}
+
+As last variation in this assignment, we apply Fisher Discriminant
+Analysis to the already with the PCA reduced Data. We use the function
+defined above and apply it to the PCA reduced data. The output of the
+two first dimensions can be plotted as shown in the following chunk,
+already giving a nice separation between classes in most cases
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{result\_FDA }\OtherTok{=} \FunctionTok{FDA.fun}\NormalTok{(data\_reduced\_PCA,labels)}
+
+\NormalTok{data\_reduced\_FDA }\OtherTok{\textless{}{-}}\NormalTok{result\_FDA}\SpecialCharTok{$}\NormalTok{transform\_data}
+\NormalTok{df\_plot }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(result\_FDA}\SpecialCharTok{$}\NormalTok{transform\_data, }\AttributeTok{labels =}\NormalTok{ result\_FDA}\SpecialCharTok{$}\NormalTok{labels)}
+\FunctionTok{ggplot}\NormalTok{(df\_plot, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ X1, }\AttributeTok{y =}\NormalTok{ X2, }\AttributeTok{color =}\NormalTok{ labels)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{assignment_1_files/figure-latex/unnamed-chunk-25-1.pdf}}
+
+Taking the first 10 fisher discriminate you can get 90\% of the reduce
+(PCA) matrix variability explain as seen below in the comulative
+variance plot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{df\_FDA }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Components =} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(result\_FDA}\SpecialCharTok{$}\NormalTok{D),}
+  \AttributeTok{CumulativeVariance =} \FunctionTok{cumsum}\NormalTok{(result\_FDA}\SpecialCharTok{$}\NormalTok{D)}
+\NormalTok{)}
+
+\CommentTok{\# Plot the cumulative explained variance}
+\FunctionTok{ggplot}\NormalTok{(df\_FDA, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Components, }\AttributeTok{y =}\NormalTok{ CumulativeVariance)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Cumulative Explained Variance"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Fisher Discriminants"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Cumulative Variance Explained"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{assignment_1_files/figure-latex/unnamed-chunk-26-1.pdf}}
+
+Looking at the performance of the FDA, we find the MASS package based
+implementation to be more efficient.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{system.time}\NormalTok{(}\FunctionTok{FDA.fun}\NormalTok{(data\_reduced\_PCA,labels))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    user  system elapsed 
+##   0.002   0.000   0.002
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{system.time}\NormalTok{( MASS}\SpecialCharTok{::}\FunctionTok{lda}\NormalTok{(data\_reduced\_PCA,labels))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    user  system elapsed 
+##   0.002   0.000   0.002
+\end{verbatim}
+
+With the FDA performed successfully, we again choose 95 \% of explained
+Variance as hyperparameter and proceed with the further dimension
+reduced data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# select discriminants according to explained variance}
+\NormalTok{cumulative\_variance\_FDA }\OtherTok{\textless{}{-}} \FunctionTok{cumsum}\NormalTok{(result\_FDA}\SpecialCharTok{$}\NormalTok{D)}
+\NormalTok{num\_components\_fda }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(cumulative\_variance\_FDA }\SpecialCharTok{\textgreater{}=} \FloatTok{0.95}\NormalTok{)[}\DecValTok{1}\NormalTok{]}
+
+\NormalTok{data\_reduced\_fda }\OtherTok{=}\NormalTok{ result\_FDA}\SpecialCharTok{$}\NormalTok{transform\_data[,}\DecValTok{1}\SpecialCharTok{:}\NormalTok{num\_components\_fda]}
+\NormalTok{data\_reduced\_fda\_labeld }\OtherTok{=} \FunctionTok{cbind}\NormalTok{(data\_reduced\_fda,labels)}
+\end{Highlighting}
+\end{Shaded}
+
+We again can plot the distribtions of the distances distances as shown
+below. As is very apparent, there is now a near complete separation
+between In-Class-Distances and Out-Of-Class Distances (ID=0).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{distance\_distributions}\NormalTok{(data\_reduced\_fda\_labeld, }\AttributeTok{distance\_metric =} \StringTok{"euclidean"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{assignment_1_files/figure-latex/unnamed-chunk-29-1.pdf}}
+
+And to find optimal hyperparameters, we proceed with CV grid search to
+again find the euclidean distance with a Quantile Threshhold of .95 and
+3 nearest neighbors optimal.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Run grid Search to optimize Hyperparameters}
+\NormalTok{CV\_grid\_search\_result\_FDA }\OtherTok{\textless{}{-}} \FunctionTok{CV\_grid\_search}\NormalTok{(data\_reduced\_fda\_labeld,}
+                                        \AttributeTok{k\_CV =} \DecValTok{5}\NormalTok{,}
+                                        \AttributeTok{knn\_k\_values =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{), }
+                                        \AttributeTok{percentile\_values =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.9}\NormalTok{, }\FloatTok{0.95}\NormalTok{), }
+                                        \AttributeTok{dist\_metrics =} \FunctionTok{c}\NormalTok{(}\StringTok{"euclidean"}\NormalTok{, }\StringTok{"manhattan"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "3 0.9 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+## 
+## [1] "3 0.9 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.02857143
+## 
+## $classification_match_rate_mean
+## [1] 0.9714286
+## 
+## $classification_fail_rate_mean
+## [1] 0.02857143
+## 
+## [1] "3 0.95 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+## 
+## [1] "3 0.95 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.02857143
+## 
+## $classification_match_rate_mean
+## [1] 0.9714286
+## 
+## $classification_fail_rate_mean
+## [1] 0.02857143
+## 
+## [1] "4 0.9 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+## 
+## [1] "4 0.9 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.02857143
+## 
+## $classification_match_rate_mean
+## [1] 0.9714286
+## 
+## $classification_fail_rate_mean
+## [1] 0.02857143
+## 
+## [1] "4 0.95 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+## 
+## [1] "4 0.95 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.02857143
+## 
+## $classification_match_rate_mean
+## [1] 0.9714286
+## 
+## $classification_fail_rate_mean
+## [1] 0.02857143
+## 
+## [1] "5 0.9 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+## 
+## [1] "5 0.9 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.02857143
+## 
+## $classification_match_rate_mean
+## [1] 0.9714286
+## 
+## $classification_fail_rate_mean
+## [1] 0.02857143
+## 
+## [1] "5 0.95 euclidean"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0
+## 
+## $classification_match_rate_mean
+## [1] 1
+## 
+## $classification_fail_rate_mean
+## [1] 0
+## 
+## [1] "5 0.95 manhattan"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.02857143
+## 
+## $classification_match_rate_mean
+## [1] 0.9714286
+## 
+## $classification_fail_rate_mean
+## [1] 0.02857143
+## 
+## [1] "#################### Best Hyperparameters ####################"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(CV\_grid\_search\_result\_FDA}\SpecialCharTok{$}\NormalTok{table\_with\_best\_params)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## 
+## Table: Best Hyperparameters
+## 
+## |Parameter                         |Value     |
+## |:---------------------------------|:---------|
+## |Distance Metric                   |euclidean |
+## |Percentile for Quantile Threshold |0.9       |
+## |KNN K nearest neighbors           |3         |
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{k\_CV }\OtherTok{=} \DecValTok{5}
+\CommentTok{\#folds \textless{}{-} sample(1:k\_CV, nrow(data\_reduced\_fda\_labeld), replace = TRUE)}
+\NormalTok{avg\_scores\_CV\_FDA }\OtherTok{\textless{}{-}} \FunctionTok{knn\_k\_fold\_cv}\NormalTok{(data\_reduced\_fda\_labeld,}
+\NormalTok{                            folds,}
+                            \AttributeTok{k\_CV =}\NormalTok{ k\_CV,}
+                            \AttributeTok{estimate\_func =}\NormalTok{ estimate\_threshold\_via\_percentile,}
+                            \AttributeTok{percentile =} \FloatTok{0.8}\NormalTok{,}
+                            \AttributeTok{knn\_k =} \DecValTok{3}\NormalTok{,}
+                            \AttributeTok{dist\_metric =} \StringTok{"euclidean"}\NormalTok{,}
+                            \AttributeTok{knn\_bool =}\NormalTok{ T,}
+                            \AttributeTok{pca\_bool =}\NormalTok{ F,}
+                            \AttributeTok{fda\_bool =}\NormalTok{ F)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{avg\_scores\_CV\_FDA}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## $binary_false_positive_rate_mean
+## [1] 0
+## 
+## $binary_false_negative_rate_mean
+## [1] 0.02222222
+## 
+## $classification_match_rate_mean
+## [1] 0.9777778
+## 
+## $classification_fail_rate_mean
+## [1] 0.02222222
+\end{verbatim}
+
+\subsection{Compare Results}\label{compare-results}
+
+Comparing the three approaches, we find the FDA/PCA approach with
+hyperparameters distance metric Euclidian distance, Quantile Threshhold
+of .95, 3 nearest neighbors optimal to yield the best scores across all
+reviewed classification approaches. Looking at how well the data was
+clustered this is in line with what could be expected. Furthermore, both
+PCA and FDA/PCA approaches have significantly improved execution times
+compared to running classification purely on the raw data. The Pipeline
+PDA-\textgreater FDA-\textgreater Classification should thus be chosen
+for the classification task.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{comparison\_table }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Metric =} \FunctionTok{names}\NormalTok{(avg\_scores\_CV\_raw),}
+  \AttributeTok{CV\_raw =} \FunctionTok{unlist}\NormalTok{(avg\_scores\_CV\_raw),}
+  \AttributeTok{CV\_PCA =} \FunctionTok{unlist}\NormalTok{(avg\_scores\_CV\_PCA),}
+  \AttributeTok{CV\_PCA\_FDA =} \FunctionTok{unlist}\NormalTok{(avg\_scores\_CV\_FDA)}
+\NormalTok{)}
+
+\CommentTok{\# Print table}
+\FunctionTok{print}\NormalTok{(comparison\_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                                          Metric CV_raw CV_PCA
+## binary_false_positive_rate_mean binary_false_positive_rate_mean      0      0
+## binary_false_negative_rate_mean binary_false_negative_rate_mean      0      0
+## classification_match_rate_mean   classification_match_rate_mean      1      1
+## classification_fail_rate_mean     classification_fail_rate_mean      0      0
+##                                 CV_PCA_FDA
+## binary_false_positive_rate_mean 0.00000000
+## binary_false_negative_rate_mean 0.02222222
+## classification_match_rate_mean  0.97777778
+## classification_fail_rate_mean   0.02222222
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Melt for ggplot}
+\NormalTok{df\_melted }\OtherTok{\textless{}{-}} \FunctionTok{melt}\NormalTok{(comparison\_table, }\AttributeTok{id.vars =} \StringTok{"Metric"}\NormalTok{, }\AttributeTok{variable.name =} \StringTok{"Model"}\NormalTok{, }\AttributeTok{value.name =} \StringTok{"Value"}\NormalTok{)}
+
+\CommentTok{\# Create individual plots}
+\NormalTok{plots }\OtherTok{\textless{}{-}} \FunctionTok{lapply}\NormalTok{(}\FunctionTok{unique}\NormalTok{(df\_melted}\SpecialCharTok{$}\NormalTok{Metric), }\ControlFlowTok{function}\NormalTok{(metric) \{}
+  \FunctionTok{ggplot}\NormalTok{(df\_melted[df\_melted}\SpecialCharTok{$}\NormalTok{Metric }\SpecialCharTok{==}\NormalTok{ metric, ], }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Model, }\AttributeTok{y =}\NormalTok{ Value, }\AttributeTok{fill =}\NormalTok{ Model)) }\SpecialCharTok{+}
+    \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"identity"}\NormalTok{, }\AttributeTok{position =} \StringTok{"dodge"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{ggtitle}\NormalTok{(metric) }\SpecialCharTok{+}
+    \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+    \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.text.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{angle =} \DecValTok{45}\NormalTok{, }\AttributeTok{hjust =} \DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+    \FunctionTok{scale\_fill\_brewer}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{)}
+\NormalTok{\})}
+
+\CommentTok{\# Arrange in a 2x2 grid}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{grid.arrange}\NormalTok{(}\AttributeTok{grobs =}\NormalTok{ plots, }\AttributeTok{ncol =} \DecValTok{2}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{assignment_1_files/figure-latex/unnamed-chunk-32-1.pdf}}
+
+\begin{verbatim}
+## TableGrob (2 x 2) "arrange": 4 grobs
+##   z     cells    name           grob
+## 1 1 (1-1,1-1) arrange gtable[layout]
+## 2 2 (1-1,2-2) arrange gtable[layout]
+## 3 3 (2-2,1-1) arrange gtable[layout]
+## 4 4 (2-2,2-2) arrange gtable[layout]
+\end{verbatim}
+
+\section{Run KNN for new Data with optimal
+hyperparametrs}\label{run-knn-for-new-data-with-optimal-hyperparametrs}
+
+RUN THIS FOR EVALUATION
+
+The following code chunk contains a function specifically designed for
+seamless classification. The only required changes are to modify the
+paths to directories containing training and testing data. The remaining
+hyperparameters have been already set up according to the optimal
+settings found in the previous analysis.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\#\# Predict for new Data}
+\NormalTok{classification\_result }\OtherTok{=} \FunctionTok{knn\_classifier\_full}\NormalTok{( }\AttributeTok{path\_train =} \StringTok{"Training\_alpha"}\NormalTok{, }\CommentTok{\# \textless{}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} Modify}
+                               \AttributeTok{path\_test =} \StringTok{"Test\_alpha"}\NormalTok{, }\CommentTok{\# \textless{}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} Modify}
+                               \AttributeTok{dist\_metric =} \StringTok{\textquotesingle{}euclidean\textquotesingle{}}\NormalTok{,}
+                               \AttributeTok{knn\_k =} \DecValTok{3}\NormalTok{,}
+                               \AttributeTok{estimate\_func =}\NormalTok{ estimate\_threshold\_via\_percentile,}
+                               \AttributeTok{percentile =} \FloatTok{0.95}\NormalTok{,}
+                               \AttributeTok{expl\_var\_pca =} \FloatTok{0.95}\NormalTok{,}
+                               \AttributeTok{expl\_var\_fda =} \FloatTok{0.95}\NormalTok{,}
+                               \AttributeTok{pca\_bool =}\NormalTok{ F,}
+                               \AttributeTok{fda\_bool =}\NormalTok{ F)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "######## Read Data ########"
+## [1] "######## Start Classification Pipeline ########"
+## [1] "######## Estimate Threshholds ########"
+## [1] "######## Run Classification########"
+## [1] "######## Classification DONE ########"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{classification\_result}\SpecialCharTok{$}\NormalTok{classification }\CommentTok{\# Returns Dataframe with True vs Predicted}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   image_names_test true predicted
+## 1          1ET.jpg    1         1
+## 2          1FT.jpg    1         1
+## 3          2AT.jpg    2         2
+## 4          7BT.jpg    0         0
+## 5         20BT.jpg    0         0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Optional: Score}
+\NormalTok{classification\_scores }\OtherTok{=} \FunctionTok{score}\NormalTok{(classification\_result}\SpecialCharTok{$}\NormalTok{classification,classification\_result}\SpecialCharTok{$}\NormalTok{classification\_binary)}
+\NormalTok{classification\_scores}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## $binary_false_positive_rate
+## [1] 0
+## 
+## $binary_false_negative_rate
+## [1] 0
+## 
+## $classification_match_rate
+## [1] 1
+## 
+## $classification_fail_rate
+## [1] 0
+\end{verbatim}
+
+\end{document}

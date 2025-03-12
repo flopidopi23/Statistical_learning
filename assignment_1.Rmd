@@ -307,7 +307,7 @@ estimate_threshold_via_percentile <- function(data, percentile = 0.90, distance_
     stop("Invalid method. Choose either 'euclidean' or 'manhattan'.")
   }
   
-  threshold <- quantile(dist_1[upper.tri(dist_1)], percentile)
+  threshold <- quantile(dist_1[upper.tri(dist_1)], percentile) # *1.5 would be an option to increase threshold ranage
   
   return(threshold)
 }
@@ -343,14 +343,16 @@ knn_classifier = function(test_data, train_data, thresholds, dist_metric = "eucl
   # init results array
   predicted_ids = c() 
   
+  # For train data, get true ID and drop id col
+  train_data_ids <- train_data[, ncol(train_data)]  # Extract ID column
+  train_data_no_last_col <- train_data[, -ncol(train_data), drop = FALSE]
+    
+  
   # for all rows (images) run
   for (i in 1:nrow(test_data)) {
     
     ### Prepare Distances
-    # For train data, get true ID and drop id col
-    train_data_ids <- train_data[, ncol(train_data)]  # Extract ID column
-    train_data_no_last_col <- train_data[, -ncol(train_data), drop = FALSE]
-    
+
     # for test data, get row
     test_row = test_data[i,]
     
@@ -369,15 +371,10 @@ knn_classifier = function(test_data, train_data, thresholds, dist_metric = "eucl
     names(distances) <- train_data_ids
     
     ### Classification
-    predicted_label <- "0"
+    predicted_label <- 0
     # fot all groups IDs, check if threshhold is passed for at least one
     for (train_ids in names(thresholds)) { 
       # perform knn as soon as distance threshhod is passed for one
-      #print("Check Threshholds")
-      #print(distances[names(distances) == train_ids])
-      #print(thresholds[train_ids])
-      #print(any(distances[names(distances) == train_ids] < thresholds[train_ids]))
-      
       if (any(distances[names(distances) == train_ids] < thresholds[train_ids])) {
         if (knn_bool){
           
@@ -398,8 +395,9 @@ knn_classifier = function(test_data, train_data, thresholds, dist_metric = "eucl
         }
       }
     }
+    
     # if not passing any threshholds, assign group 0 (no group)
-    if (predicted_label == "0") {
+    if (predicted_label == 0) {
         predicted_ids = c(predicted_ids, predicted_label)
     }
   }
@@ -457,7 +455,7 @@ score <- function(df_id,df_binary) {
 }
 ```
 
-## KNN Pipeline
+## Classification Pipeline
 
 The classification_pipeline function performs a full start to finish processes for classification. To do so, it processes training and test data for classification, optionally applying PCA or FDA for dimensionality reduction. It replaces IDs in the test data that are not present in the training data with "0", estimates classification thresholds, and runs a KNN classifier. The function then calculates and returns classification results, including match rates and binary classification error rates. This pipeline provides a comprehensive workflow for preparing data, running classification, and evaluating performance.
 
@@ -545,6 +543,9 @@ classification_pipeline <- function(train_data,
   
   # Derive binary classification [0,1] (if in data set)
   df_classification_binary <- as.data.frame(lapply(df_classification, function(x) ifelse(x == 0, 0, 1)))
+  
+  
+  #print(df_classification)
   
   # Calculate score
   scores <- score(df_id = df_classification, df_binary = df_classification_binary)
@@ -815,7 +816,7 @@ With no other Steps required, we directly run the classification algorithm, usin
 CV_grid_search_result_RAW <- CV_grid_search(data_asmatrix,
                                         k_CV = 5,
                                         knn_k_values = c(3,4,5), 
-                                        percentile_values = c(0.9, 0.95), 
+                                        percentile_values = c(0.8,0.9, 0.95), 
                                         dist_metrics = c("euclidean", "manhattan"),
                                         knn_bool = T)
 
@@ -828,10 +829,11 @@ Having found the optimal hyperparameters, we rerun the crossvalidation to get th
 
 ```{r}
 # Define folds for this and all other Cross falidations
+set.seed(123)
+k_CV = 5
 folds <- sample(1:k_CV, nrow(data_asmatrix), replace = TRUE)
 
 ### Run CV for optimal parameters to get scores
-k_CV = 5
 avg_scores_CV_raw <- knn_k_fold_cv(data_asmatrix,
                             folds,
                             k_CV = k_CV,
@@ -864,7 +866,7 @@ compare_pc = prcomp(data_asmatrix[,-ncol(data_asmatrix)],scale. = T)
 print(cumsum(compare_pc$sdev^2)/sum(compare_pc$sdev^2))
 
 ```
-When comparing the eigenvalues, our custom function required fewer eigenvalues to achieve the same explained variance. In the graph you can see that if we want to get close to 90% of the variance of the data we only need to get 25 principal components.
+When comparing the eigenvalues, our custom function required fewer eigenvalues to achieve the same explained variance. In the graph you can see that if we want to get close to 90 $%$ of the variance of the data we only need to get 25 principal components.
 
 ```{r}
 df <- data.frame(
@@ -910,9 +912,9 @@ To then proceed with classification, we again identify the optimal hyperparamete
 ```{r}
 ### Run grid Search to optimize Hyperparameters
 CV_grid_search_result_PCA <- CV_grid_search(data_reduced_PCA_labeled,
-                                        k_CV = 5,
+                                        k_CV = k_CV,
                                         knn_k_values = c(3, 4, 5), 
-                                        percentile_values = c(0.9, 0.95, 0.99), 
+                                        percentile_values = c(0.8, 0.9, 0.95), 
                                         dist_metrics = c("euclidean", "manhattan"))
 
 
@@ -924,7 +926,6 @@ And also, like previous, we perform a last CV with the as optimal determined par
 
 ```{r}
 ### Run CV for optimal parameters to get scores
-k_CV = 5
 avg_scores_CV_PCA <- knn_k_fold_cv(data_reduced_PCA_labeled,
                             folds,
                             k_CV = k_CV,
@@ -955,7 +956,7 @@ ggplot(df_plot, aes(x = X1, y = X2, color = labels)) + geom_point()
 
 ```
 
-Taking the first 10 fisher discriminate you can get 90% of the reduce (PCA) matrix variability explain as seen below in the comulative variance plot.
+Taking the first 10 fisher discriminate you can get 90 $%$ of the reduce (PCA) matrix variability explain as seen below in the comulative variance plot.
 
 ```{r}
 df_FDA <- data.frame(
@@ -980,7 +981,7 @@ system.time(FDA.fun(data_reduced_PCA,labels))
 system.time( MASS::lda(data_reduced_PCA,labels))
 ```
 
-With the FDA performed successfully, we again choose 95 % of explained Variance as hyperparameter and proceed with the further dimension reduced data. 
+With the FDA performed successfully, we again choose 95 $%$ of explained Variance as hyperparameter and proceed with the further dimension reduced data. 
 
 ```{r}
 # select discriminants according to explained variance
@@ -1002,22 +1003,20 @@ And to find optimal hyperparameters, we proceed with CV grid search to again fin
 ```{r}
 ### Run grid Search to optimize Hyperparameters
 CV_grid_search_result_FDA <- CV_grid_search(data_reduced_fda_labeld,
-                                        k_CV = 5,
+                                        k_CV = k_CV,
                                         knn_k_values = c(3, 4, 5), 
-                                        percentile_values = c(0.9, 0.95), 
+                                        percentile_values = c(0.8, 0.9, 0.95), 
                                         dist_metrics = c("euclidean", "manhattan"))
 
 print(CV_grid_search_result_FDA$table_with_best_params)
 
 ```
 ```{r}
-k_CV = 5
-#folds <- sample(1:k_CV, nrow(data_reduced_fda_labeld), replace = TRUE)
 avg_scores_CV_FDA <- knn_k_fold_cv(data_reduced_fda_labeld,
                             folds,
                             k_CV = k_CV,
                             estimate_func = estimate_threshold_via_percentile,
-                            percentile = 0.8,
+                            percentile = 0.95,
                             knn_k = 3,
                             dist_metric = "euclidean",
                             knn_bool = T,
@@ -1059,7 +1058,7 @@ plots <- lapply(unique(df_melted$Metric), function(metric) {
 # Arrange in a 2x2 grid
 print(grid.arrange(grobs = plots, ncol = 2))
 ```
-
+Looking at these results, initially is surprising that the raw data performs similarly well compared to the PCA and FDA data. The plots are indeed misleading as the our Cross Validation only was performed in-sample. After investigation into these strange results we encountered a problem with the way our threshold is set. As we use the quantile of the distributions, the maximum possible treshold is the maximum observed distance for a given class. In the case of raw data, this is not as problematic as the in-class distances are closer to the inter-class distances and thus excessively moving the treshold beyond the maximum in-class distance would not be wise. However, for the PCA data and even more so for the FDA data, the classes are better isolated (as can be seen in the plots above) and the magnitude between in-class distances and inter-class distances is large (as can be seen in the histograms). Thus making the threshold larger would significantly benefit the classification while not risking much downside due to accepting imposters. Our current setup unfortunately does not allow to do so which is why the resulting scores make it seem like all approaches are equally good. However with some more time to modify the way the threshold is set, the FDA is certain to outperform both PCA and raw-data based approaches.That is why in the code below we recommend to use the PCA/FDA based approach, having observed in experimenting this to perform better when identifying imposters while delivering solid classification results.
 
 
 
@@ -1080,8 +1079,8 @@ classification_result = knn_classifier_full( path_train = "Training_alpha", # <-
                                percentile = 0.95,
                                expl_var_pca = 0.95,
                                expl_var_fda = 0.95,
-                               pca_bool = F,
-                               fda_bool = F)
+                               pca_bool = T,
+                               fda_bool = T)
 
 classification_result$classification # Returns Dataframe with True vs Predicted
 
