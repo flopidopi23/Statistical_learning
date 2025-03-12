@@ -308,6 +308,19 @@ estimate_threshold_via_percentile <- function(data, percentile = 0.90, distance_
   }
   
   threshold <- quantile(dist_1[upper.tri(dist_1)], percentile)
+  
+  # Extract upper-triangular distance values
+  #dist_values <- dist_1[upper.tri(dist_1)]
+  
+  # Fit normal distribution (estimate parameters)
+  #mu <- mean(dist_values)       # Mean
+  #sigma <- sd(dist_values)      # Standard deviation
+  
+  # Compute 95% confidence interval
+  #threshold = qnorm(0.975, mean = mu, sd = sigma)  # 97.5% quantile
+  #print(dist_values)
+  #print(threshold)
+  
   return(threshold)
 }
 
@@ -371,6 +384,9 @@ knn_classifier = function(test_data, train_data, thresholds, dist_metric = "eucl
     predicted_label <- "0"
     # fot all groups IDs, check if threshhold is passed for at least one
     for (train_ids in names(thresholds)) { 
+      print(names(thresholds))
+      print(distances[names(distances) == train_ids])
+      print(thresholds[train_ids])
       # perform knn as soon as distance threshhod is passed for one
       if (any(distances[names(distances) == train_ids] < thresholds[train_ids])) {
         if (knn_bool){
@@ -540,6 +556,9 @@ classification_pipeline <- function(train_data,
   # Derive binary classification [0,1] (if in data set)
   df_classification_binary <- as.data.frame(lapply(df_classification, function(x) ifelse(x == 0, 0, 1)))
   
+  
+  print(df_classification_binary)
+  
   # Calculate score
   scores <- score(df_id = df_classification, df_binary = df_classification_binary)
   
@@ -580,7 +599,9 @@ knn_k_fold_cv <- function(data,
 
   
   all_results <- list()
-  # Perform K-fold cross-validation
+  # Perform K-fold cross-validation the normal way
+  
+  print("---------- In Sample Validation")
   for(i in 1:k_CV) {
     
     # Split data into training and testing sets based on the fold
@@ -600,15 +621,85 @@ knn_k_fold_cv <- function(data,
                                        pca_bool,
                                        fda_bool)
     
-    
     # Store results for this fold
     all_results[[i]] <- list(
-      binary_false_positive_rate = results$binary_false_positive_rate,
       binary_false_negative_rate = results$binary_false_negative_rate,
       classification_match_rate = results$classification_match_rate,
       classification_fail_rate = results$classification_fail_rate
     )
   }
+  
+  print("---------- Out of Sample Validation")
+  unique_ids <- unique(data[, ncol(data)])
+  all_results_out_of_sample = c()
+  
+  for (IDiter in unique_ids) {
+    train_out_of_sample <- data[data[, ncol(data)] != IDiter, , drop = FALSE]  # Train set: all except current ID
+    test_out_of_sample  <- data[data[, ncol(data)] == IDiter, , drop = FALSE]  # Test set: only current ID
+  
+    # Run the classification pipeline for out of sample data
+    results_out_of_sample <- classification_pipeline(train_out_of_sample, 
+                                       test_out_of_sample,
+                                       estimate_func = estimate_func,
+                                       percentile = percentile,
+                                       knn_k = knn_k ,
+                                       dist_metric = dist_metric,
+                                       expl_var_pca,
+                                       expl_var_fda,
+                                       knn_bool=F,
+                                       pca_bool,
+                                       fda_bool)
+    
+    
+    # Store results for this fold
+    all_results_out_of_sample[[IDiter]] <- list(
+      binary_false_positive_rate = results_out_of_sample$binary_false_positive_rate
+    )
+  }
+  
+  # Store means
+  binary_false_positive_rate_mean <- mean(sapply(all_results_out_of_sample, function(x) x$binary_false_positive_rate))
+  binary_false_negative_rate_mean <- mean(sapply(all_results, function(x) x$binary_false_negative_rate))
+  classification_match_rate_mean <- mean(sapply(all_results, function(x) x$classification_match_rate))
+  classification_fail_rate_mean <- mean(sapply(all_results, function(x) x$classification_fail_rate))
+
+  avg_scores = list(binary_false_positive_rate_mean = binary_false_positive_rate_mean,
+                     binary_false_negative_rate_mean = binary_false_negative_rate_mean,
+                     classification_match_rate_mean = classification_match_rate_mean,
+                     classification_fail_rate_mean = classification_fail_rate_mean)
+  
+  # Print all average metrics
+  if (print_bool){
+    cat("Average scores across all folds:")
+    cat(avg_scores)
+  }
+
+  return(avg_scores)#, scores_by_fold=all_results))
+}
+```
+
+
+```{r}
+### K fold Cross Validation
+knn_out_off_sample_cv <- function(data,
+                          estimate_func, 
+                          percentile, 
+                          knn_k, 
+                          dist_metric,
+                          expl_var_pca = 0.95,
+                          expl_var_fda = 0.95,
+                          knn_bool,
+                          pca_bool = F,
+                          fda_bool = F,
+                          print_bool = F) {
+
+  
+  all_results <- list()
+
+    
+  unique_ids <- unique(data[, ncol(data)])
+
+  
   
   # Store means
   binary_false_positive_rate_mean <- mean(sapply(all_results, function(x) x$binary_false_positive_rate))
@@ -630,6 +721,9 @@ knn_k_fold_cv <- function(data,
   return(avg_scores)#, scores_by_fold=all_results))
 }
 ```
+
+
+
 
 
 ## KNN Grid Search Optimization
@@ -657,6 +751,7 @@ CV_grid_search <- function(data,
     for (percentile in percentile_values) {
       for (dist_metric in dist_metrics) {
             # Run cross-validation
+        print(paste(knn_k,percentile,dist_metric))
             avg_scores <- knn_k_fold_cv(data,
                                         folds,
                                         k_CV = k_CV,
@@ -780,7 +875,7 @@ We start by loading the data and doing some basic data manipulation.
 
 ```{r}
 ### load data
-folder_path = "Training"
+folder_path = "Training_alpha"
 data = read_all_images(folder_path)
 
 labels <- data$Label  
@@ -822,8 +917,8 @@ Having found the optimal hyperparameters, we rerun the crossvalidation to get th
 ```{r}
 ### Run CV for optimal parameters to get scores
 k_CV = 5
-folds <- sample(1:k_CV, nrow(data_matriz), replace = TRUE)
-avg_scores_CV_raw <- knn_k_fold_cv(data_matriz,
+folds <- sample(1:k_CV, nrow(data_asmatrix), replace = TRUE)
+avg_scores_CV_raw <- knn_k_fold_cv(data_asmatrix,
                             folds,
                             k_CV = k_CV,
                             estimate_func = estimate_threshold_via_percentile,
@@ -849,7 +944,7 @@ If we compare the PCA function we created with prcomp(), we can see a significan
 ### Run manual and baseR PCA 
 print(system.time(PCA.fun(data)))
 PCA_result = PCA.fun(data)
-data_PC = data_asmatrix[,-ncol(data_asmatrix)] %*% PCA_result$"Eigen Vector"[,1:20]
+data_PC = data_asmatrix[,-ncol(data_asmatrix)] %*% PCA_result$"Eigen Vector"[,1:40]
 
 print(system.time(prcomp(data_asmatrix[,-ncol(data_asmatrix)],scale. = T)))
 compare_pc = prcomp(data_asmatrix[,-ncol(data_asmatrix)],scale. = T)
@@ -1073,8 +1168,8 @@ classification_result = knn_classifier_full( path_train = "Training_alpha", # <-
                                percentile = 0.95,
                                expl_var_pca = 0.95,
                                expl_var_fda = 0.95,
-                               pca_bool = T,
-                               fda_bool = T)
+                               pca_bool = F,
+                               fda_bool = F)
 
 classification_result$classification # Returns Dataframe with True vs Predicted
 
