@@ -172,11 +172,16 @@ The following section contains a function to perform principal Component Analysi
 
 ```{r}
 ### PCA Function
-PCA.fun = function(X){
-  X = X %>% dplyr::select(-c("Label","ID"))
-  print(dim(X))
-  X = as.matrix(X)
-  X = apply(X, 2, as.numeric) # make sure it is numeric
+PCA.fun = function(X,matrix_bool = F){
+  if (!matrix_bool){
+    X = X %>% dplyr::select(-c("Label","ID"))
+    print(dim(X))
+    X = as.matrix(X)
+  } else{
+    X = X[,-ncol(X)]
+    print(dim(X))
+  }
+  
   n = nrow(X)
   mu = colMeans(X)
   # center data
@@ -241,7 +246,11 @@ In the graph you can see that if we want to get close to 90% of the variance of 
 
 ```{r}
 FDA.fun = function(data, labels, reg = 1e-6) {
-  data = as.matrix(data)
+  if(!is.matrix(data)){
+    data = as.matrix(data)
+  }
+  
+  
   labels = as.factor(labels)
   
   num_classes = length(unique(labels))
@@ -286,6 +295,7 @@ FDA.fun = function(data, labels, reg = 1e-6) {
   eigenvalues = eigenvalues[1:num_components]
   P = P[, 1:num_components, drop = FALSE]
   D = eigenvalues / sum(eigenvalues)  
+  
   transform_data = data %*% P
   return(list(mean = mean_total, P = P, D = D,transform_data= transform_data,labels=labels))
 }
@@ -393,9 +403,12 @@ estimate_thresholds <- function(train_data, estimate_func, percentile) {
   for (id in train_data_ids_unique) {
     train_data_grouped <- train_data[train_data[, ncol(train_data)] == id, , drop = FALSE]
     if (nrow(train_data_grouped) > 1) {
-      thresholds[id] <- estimate_func(train_data_grouped,percentile = percentile)
+      thresholds[id] <- estimate_func(train_data_grouped[,-ncol(train_data_grouped)],percentile = percentile)
     }
   }
+  
+  names(thresholds) <- train_data_ids_unique
+
   
   return(thresholds)
 }
@@ -431,7 +444,7 @@ knn_classifier = function(test_data, train_data, thresholds, dist_metric = "eucl
       }
     })
     names(distances) <- train_data_ids
-  
+    
     ### Classification
     predicted_label <- "0"
     # fot all groups IDs, check if threshhold is passed for at least one
@@ -439,6 +452,7 @@ knn_classifier = function(test_data, train_data, thresholds, dist_metric = "eucl
       # perform knn as soon as distance threshhod is passed for one
       if (any(distances[names(distances) == train_ids] < thresholds[train_ids])) { 
         if (knn_bool){
+          
           k_neighbors <- order(distances)[1:min(k, length(distances))] # with k >= training points
           neighbor_labels <- train_data_ids[k_neighbors]  # Get labels of k-nearest neighbors
           
@@ -530,22 +544,17 @@ classification_pipeline <- function(train_data,
   # Replace IDs in test_data that are not in train_data with "0"
   train_ids <- train_data[, ncol(train_data)]
   test_ids <- test_data[, ncol(test_data)]
-  test_data[, ncol(test_data)][!test_ids %in% train_ids] <- 0
   
+  test_data[, ncol(test_data)][!test_ids %in% train_ids] <- 0
+  test_ids <- test_data[, ncol(test_data)]
   
   # run pca if required 
   if (pca_bool){
     print("######## Run PCA ########")
     
-    # turn to df for compatability
-    train_data <- as.data.frame(train_data[,-ncol(train_data)])
-    train_data <- train_data %>% mutate_all(as.numeric)
-    
-    train_data$Label <- NA
-    train_data$ID <- NA
-    
     # Run PCA
-    pca_result <- PCA.fun(train_data)
+    pca_result <- PCA.fun(train_data, matrix_bool = T)
+    
     
     # Get results and get PC's that explain 95% Variance
     eig_vecs <- pca_result$"Eigen Vector"
@@ -553,8 +562,8 @@ classification_pipeline <- function(train_data,
     num_components_pca <- which(cumulative_variance >= expl_var_pca)[1]
     
     # Project data onto selected PCs
-    train_data <- as.matrix(train_data %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components_pca]
-    test_data <- as.matrix(test_data %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components_pca]
+    train_data <- as.matrix(train_data[,-ncol(train_data)] %*% eig_vecs[, 1:num_components_pca])
+    test_data <- as.matrix(test_data[,-ncol(test_data)] %*% eig_vecs[, 1:num_components_pca])
 
     train_data = cbind(train_data, train_ids)
     test_data = cbind(test_data, test_ids)
@@ -564,13 +573,6 @@ classification_pipeline <- function(train_data,
   if (fda_bool){
     print("######## Run FDA ########")
     
-    # turn to df for compatability
-    train_data <- as.data.frame(train_data[,-ncol(train_data)])
-    train_data <- train_data %>% mutate_all(as.numeric)
-
-    train_data$Label <- NA
-    train_data$ID <- NA
-    
     # run fda
     result_FDA = FDA.fun(train_data[,-ncol(train_data)],train_ids)
     
@@ -578,17 +580,16 @@ classification_pipeline <- function(train_data,
     cumulative_variance_FDA <- cumsum(result_FDA$D)
     num_components_fda <- which(cumulative_variance_FDA >= expl_var_fda)[1]
     
-    # transform train & test
-    train_data = as.matrix(train_data)
-    train_data = train_data[,-ncol(train_data)]%*% result_FDA$P[, 1:num_components_fda]
-    test_data = test_data[,-ncol(test_data)]%*% result_FDA$P[, 1:num_components_fda]
+    train_data = as.matrix(train_data[,-ncol(train_data)]) %*% result_FDA$P[, 1:num_components_fda]
+    test_data = as.matrix(test_data[,-ncol(test_data)]) %*% result_FDA$P[, 1:num_components_fda]
   
     train_data = cbind(train_data, train_ids)
     test_data = cbind(test_data, test_ids)
     
   }
 
-  
+  print("######## Estimate Threshholds ########")
+
   # Estimate thresholds
   thresholds <- estimate_thresholds(train_data, estimate_func = estimate_func, percentile = percentile)
   
@@ -596,6 +597,8 @@ classification_pipeline <- function(train_data,
   true_test_ids <- c(test_data[, ncol(test_data), drop = FALSE])
   test_data_input <- test_data[, -ncol(test_data), drop = FALSE]
   
+  print("######## Run Classification########")
+
   # Run KNN classifier
   predicted_ids <- knn_classifier(test_data_input, train_data, thresholds = thresholds, dist_metric = dist_metric,k = knn_k,knn_bool = knn_bool)
   
@@ -612,6 +615,8 @@ classification_pipeline <- function(train_data,
   # Calculate score
   scores <- score(df_id = df_classification, df_binary = df_classification_binary)
   
+  print("######## Classification DONE ########")
+
   # Return results
   return(list(
     classification = df_classification,
@@ -637,12 +642,14 @@ knn_k_fold_cv <- function(data,
                           percentile, 
                           knn_k, 
                           dist_metric,
-                          expl_var_pca,
-                          expl_var_fda,
+                          expl_var_pca = 0.95,
+                          expl_var_fda = 0.95,
                           knn_bool,
-                          pca_bool,
+                          pca_bool = F,
+                          fda_bool = F,
                           print_bool = F) {
 
+  
   all_results <- list()
   # Perform K-fold cross-validation
   for(i in 1:k_CV) {
@@ -661,7 +668,9 @@ knn_k_fold_cv <- function(data,
                                        expl_var_pca,
                                        expl_var_fda,
                                        knn_bool,
-                                       pca_bool)
+                                       pca_bool,
+                                       fda_bool)
+    
     
     # Store results for this fold
     all_results[[i]] <- list(
@@ -702,11 +711,12 @@ CV_grid_search <- function(data,
                            knn_k_values, 
                            percentile_values, 
                            dist_metrics,
-                           expl_var_pca_grid,
-                           expl_var_fda_grid,
+                           expl_var_pca = 0.95,
+                           expl_var_fda = 0.95,
                            k_CV = 5,
-                           knn_bool = F,
-                           pca_bool = F) {
+                           knn_bool = T,
+                           pca_bool = F,
+                           fda_bool = F) {
   # Store results
   results_list <- list()
   
@@ -716,8 +726,6 @@ CV_grid_search <- function(data,
   for (knn_k in knn_k_values) {
     for (percentile in percentile_values) {
       for (dist_metric in dist_metrics) {
-        for (expl_var_pca in expl_var_pca_grid) {
-          for (expl_var_fda in expl_var_fda_grid) {
             # Run cross-validation
             avg_scores <- knn_k_fold_cv(data,
                                         folds,
@@ -729,7 +737,9 @@ CV_grid_search <- function(data,
                                         expl_var_pca = expl_var_pca,
                                         expl_var_fda = expl_var_fda,
                                         knn_bool,
-                                        pca_bool)
+                                        pca_bool,
+                                        fda_bool)
+            print(avg_scores)
         
             # Store results
             results_list[[paste(knn_k, percentile, dist_metric, sep="_")]] <- list(
@@ -743,11 +753,9 @@ CV_grid_search <- function(data,
               classification_match_rate_mean = avg_scores$classification_match_rate_mean,
               classification_fail_rate_mean = avg_scores$classification_fail_rate_mean
             )
-          }
-        }
       }
     }
-  }
+    }
   
   # Convert results to data frame
   results_df <- do.call(rbind, lapply(results_list, as.data.frame))
@@ -760,9 +768,6 @@ CV_grid_search <- function(data,
   print(paste("Distance Metric: ", best_params_knn$dist_metric))
   print(paste("Percentile for Quantile Threshold: ", best_params_binary$percentile))
   print(paste("KNN K nearest neighbors: ", best_params_knn$knn_k))
-  print(paste("PCA explained Variance Threshhold: ", best_params_knn$expl_var_pca))
-  print(paste("FDA explained Variance Threshhold: ", best_params_knn$expl_var_fda))
-
 
   return(list(results_df = results_df, 
               best_params_knn = best_params_knn, 
@@ -783,11 +788,14 @@ knn_classifier_full <- function(path_train,
                            result, 
                            estimate_func = estimate_threshold_via_percentile,
                            percentile = percentile,
-                           pca_bool = F) {
+                           expl_var_pca,
+                           expl_var_fda,
+                           pca_bool,
+                           fda_bool) {
 
   
 
-  
+  print("######## Read Data ########")
   data_train = read_all_images(path_train)
   data_test = read_all_images(path_test)
   
@@ -798,43 +806,25 @@ knn_classifier_full <- function(path_train,
 
   data_train = data_train %>% dplyr::select(-ID)
   data_test = data_test %>% dplyr::select(-ID)
-
+  
+  data_train = as.matrix(data_train)
+  data_test = as.matrix(data_test)
+  
+  data_train = apply(data_train, 2, as.numeric)
+  data_test = apply(data_test, 2, as.numeric)
 
   
-  if (pca_bool){
-    
-    pca_result <- PCA.fun(data_train)
-    
-    # Get results and get PC's that explain 95% Variance
-    eig_vecs <- pca_result$"Eigen Vector"
-    cumulative_variance <- cumsum(pca_result$D)
-    num_components <- which(cumulative_variance >= 0.95)[1]
-    
-    # Project data onto selected PCs
-    data_train_asmatrix <- as.matrix(data_train %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components]
-    data_test_asmatrix <- as.matrix(data_test %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components]
-
-    data_train_asmatrix = cbind(data_train_asmatrix, data_train_labels)
-    data_test_asmatrix = cbind(data_test_asmatrix, data_test_labels)
-    
-    print(data_test_asmatrix[,ncol(data_test_asmatrix)])
-
-  }else{
-
-      
-    data_train_asmatrix = as.matrix(data_train)
-    data_test_asmatrix = as.matrix(data_test)
-    
-    print(data_test_asmatrix[,ncol(data_test_asmatrix)])
-  }
-  
-  
-  classification_result = classification_pipeline(train_data = data_train_asmatrix,
-                                    test_data = data_test_asmatrix,
+  print("######## Start Classification Pipeline ########")
+  classification_result = classification_pipeline(train_data = data_train,
+                                    test_data = data_test,
                                     estimate_func = estimate_func,
                                     percentile = percentile,
                                     knn_k = knn_k,
-                                    dist_metric = dist_metric)
+                                    dist_metric = dist_metric,
+                                    expl_var_pca = expl_var_pca,
+                                    expl_var_fda = expl_var_pca,
+                                    pca_bool = pca_bool,
+                                    fda_bool = fda_bool)
   
   classification_result$classification = cbind(image_names_test,classification_result$classification)
   classification_result$classification_binary = cbind(image_names_test,classification_result$classification_binary)
@@ -859,6 +849,7 @@ image_names = data$ID
 data = data %>% dplyr::select(-ID)
 
 data_matriz = as.matrix(data)
+data_matriz <- apply(data_matriz, 2, as.numeric)
 ```
 
 
@@ -873,8 +864,9 @@ for (distance_metric in c("euclidean", "manhattan")) {
 
 ```
 
-## Run KNN
 
+
+## Run KNN
 
 ### Run KNN on Raw Data
 
@@ -882,18 +874,41 @@ for (distance_metric in c("euclidean", "manhattan")) {
 ### Run grid Search to optimize Hyperparameters
 CV_grid_search_result <- CV_grid_search(data_matriz,
                                         k_CV = 5,
-                                        knn_k_values = c(3, 4, 5, 6, 7), 
-                                        percentile_values = c(0.8, 0.9, 0.95, 0.99), 
+                                        knn_k_values = c(3, 4, 5), 
+                                        percentile_values = c(0.9, 0.95), 
                                         dist_metrics = c("euclidean", "manhattan"),
-                                        expl_var_pca_grid = c(0.9,0.95),
-                                        expl_var_fda_grid = c(0.9,0.95),
-                                        knn_bool = T,
-                                        pca_bool = T
-                                        )
+                                        expl_var_pca = 0.95,
+                                        expl_var_fda = 0.95,
+                                        knn_bool = T)
+
 
 #print(CV_grid_search_result$results_df)
 print(CV_grid_search_result$best_params_knn)
-#print(CV_grid_search_result$best_params_binary)
+print(CV_grid_search_result$best_params_binary)
+
+```
+
+
+
+
+```{r}
+
+k_CV = 5
+folds <- sample(1:k_CV, nrow(data_matriz), replace = TRUE)
+avg_scores <- knn_k_fold_cv(data_matriz,
+                            folds,
+                            k_CV = k_CV,
+                            estimate_func = estimate_threshold_via_percentile,
+                            percentile = 0.9,
+                            knn_k = 3,
+                            dist_metric = "euclidean",
+                            expl_var_pca = 0.95,
+                            expl_var_fda = 0.95,
+                            knn_bool = T,
+                            pca_bool = F,
+                            fda_bool = F)
+
+avg_scores
 
 ```
 
@@ -903,7 +918,7 @@ print(CV_grid_search_result$best_params_knn)
 
 ```{r}
 ### Run PCA & prep data
-pca_result <- PCA.fun(data)
+pca_result <- PCA.fun(data_matriz, matrix_bool=T)
 
 # Get results and get PC's that explain 95% Variance
 eig_vecs <- pca_result$"Eigen Vector"
@@ -921,8 +936,8 @@ data_reduced_labeled = cbind(data_reduced, labels)
 ### Run grid Search to optimize Hyperparameters
 CV_grid_search_result <- CV_grid_search(data_reduced_labeled,
                                         k_CV = 5,
-                                        knn_k_values = c(3, 4, 5, 6, 7), 
-                                        percentile_values = c(0.8, 0.9, 0.95, 0.99), 
+                                        knn_k_values = c(3, 4, 5), 
+                                        percentile_values = c(0.9, 0.95, 0.99), 
                                         dist_metrics = c("euclidean", "manhattan"))
 
 #print(CV_grid_search_result$results_df)
@@ -932,31 +947,40 @@ print(CV_grid_search_result$best_params_binary)
 ```
 
 
-```{r}
 
+
+### Run KNN on FDA + PCA Data
+
+```{r}
+### Run FDA
+result_FDA = FDA.fun(data_reduced,labels)
+
+# select discriminants according to explained variance
+cumulative_variance_FDA <- cumsum(result_FDA$D)
+num_components_fda <- which(cumulative_variance_FDA >= 0.95)[1]
+
+data_reduced_fda = result_FDA$transform_data[,1:num_components_fda]
+data_reduced_fda = cbind(data_reduced_fda,labels)
 ```
 
 
-### Run KNN on data dimension reduced by FDA and PCA
-
 ```{r}
-df_FDA <- data.frame(
-  Components = 1:length(result_FDA$D),
-  CumulativeVariance = cumsum(result_FDA$D)
-)
+### Run grid Search to optimize Hyperparameters
+CV_grid_search_result <- CV_grid_search(data_reduced_fda,
+                                        k_CV = 5,
+                                        knn_k_values = c(3, 4, 5), 
+                                        percentile_values = c(0.9, 0.95), 
+                                        dist_metrics = c("euclidean", "manhattan"))
+
+#print(CV_grid_search_result$results_df)
+print(CV_grid_search_result$best_params_knn)
+print(CV_grid_search_result$best_params_binary)
 ```
-
-
 
 
 ### Compare Results
 
-TODO: Discuss Results
-
-```{r}
-# TODO: Display Results
-```
-
+TODO: Write stuff
 
 
 
@@ -969,8 +993,11 @@ results = knn_classifier_full( path_train = "Training_alpha",
                                dist_metric = 'euclidean',
                                knn_k = 3,
                                estimate_func = estimate_threshold_via_percentile,
-                               percentile = 0.99,
-                               pca_bool = T)
+                               percentile = 0.9,
+                               expl_var_pca = 0.95,
+                               expl_var_fda = 0.95,
+                               pca_bool = T,
+                               fda_bool = T)
 
 results
 ```
