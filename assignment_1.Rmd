@@ -19,64 +19,40 @@ library(pROC)
 library(tictoc)
 library(dplyr)
 library(MASS)
-library(gtools)   
+library(gtools) 
+library(reshape2)
+library(gridExtra)
 
 ```
 
-# Notes and Teach inputs
+# README
 
-Assignment 1
-raw_data -> KNN
-raw_data -> PCA -> KNN
-
-
-Steps:
-1. Intra Class distances (same person) -> Visualize resulting histograms
-2. Between Class distances (different persons) 
-3. Set Threshold between Distance BetweeenClasses and Distance InterClass
-4. Use difference Distances
-5. Use PCA 
-
-Assignment 2
-1. FDA
-raw_data -> PCA -> DiscrAnal(Fisher Faces) -> KNN
-
-
-TODOS: 
-- Apply and compare PCA : Flo 
-- Read Image Name into read_data output: Flo
-- CV Classification Hyperparam tuning - Raw Data : Simon
-- CV Classification Hyperparam tuning - PCA Data : Simon
-- Classification Test with Images that are not in Database: Simon
-
-- Apply and interprete FDA (PCA -> FDA): Flo
-- PCA -> FDA -> KNN (Hyperparm): Simon
-
-- Prep Code for prof test data: Simon
-
-- Introduction, Conclusion, make pretty : Simon
-
-
-Notes from Class
-
-Hyperparm tuning
-
-KNN (Dist, k, treshhold)
-PCA - KNN (Dist, k,treshhold, expl var)
-PCA - FDA - KNN (Dist, k, treshhold, expl var, number of fda's)
-
-to avoid computational cost. Take optimal from previous and only optimize new parameter
-JUSTIFY! 
+The following Document is Split into three Main Parts: 
+- Functions (only definitions)
+- Code execution to find optimal classification set up
+- Classification execution for new data (Last code chunk of Rmd) <- This is the code that should be used to evaluate the classification
 
 
 # Introduction
 
+The following document contains the work done for assignments 1 and 2 of the course on statistical learning at Universidad Carlos III de Madrid.  This assignment aims to implement two facial recognition classifiers based on the K-nearest neighbor algorithm and using Principal Component Analysis (PCA) and Fisher Discriminant Analysis (FDA). Both techniques aim to reduce the dimensionality of the image data while preserving critical information for classification.
 
+In Part A, we employ PCA to construct a facial recognizer. PCA is an unsupervised method that finds the principal components of the data, capturing the directions of maximum variance. Using PCA, we project the images onto a lower-dimensional space and classify them using a k-nearest neighbors (k-NN) classifier. The classification process involves determining the optimal number of principal components to retain, selecting an appropriate number of neighbors in k-NN, defining a similarity metric, and establishing a threshold for determining whether a given image belongs to the database.
 
-# Data Import
+In Part B, we implement a facial recognizer using Fisher Discriminant Analysis (FDA). Unlike PCA, FDA is a supervised method that finds a projection maximizing the class separability. This ensures that images of the same person remain close together while different individuals are more distinguishable. Similar to Part A, we use a k-NN classifier on the Fisher-discriminant-transformed data and determine the appropriate hyperparameters to optimize performance.
+
+We begin with defining the functions required for general use, PCA, FDA and KNN as well as cross validation and evaluation. Afterwards we use these functions to complete Part A and Part B of the assignment 
+
+# Funcions
+
+In the following section, we define all the functions that will be used later on for both Part A and Part B.
+
+## Data Import
+
+The R function "read_all_images" reads all image files from a specified folder, extracts labels and filenames from the image file names, and converts the image data into a data frame format. It processes each image by reading its pixel values, combining the RGB channels into a single row, and appending the extracted labels and filenames to the data frame.
 
 ```{r}
-
+### Read Data functions
 read_all_images <- function(folder_path) {
   image_files <- list.files(folder_path, full.names = TRUE, pattern = "\\.(jpg|png|jpeg|tiff|bmp)$", ignore.case = TRUE)
   
@@ -119,7 +95,10 @@ read_all_images <- function(folder_path) {
 
 
 
-# Distance Histograms
+## Distance Histograms
+
+The function "distance_distributions" calculates pairwise distances between rows in a dataset using a specified distance metric and plots histograms of these distances, distinguishing between distances within the same group and distances between different groups.
+
 ```{r}
 ### Distance Histograms
 distance_distributions <- function(data, distance_metric="euclidean"){
@@ -166,9 +145,14 @@ distance_distributions <- function(data, distance_metric="euclidean"){
 
 
 
-# Principal Component Analysis (PCA)
+## Principal Component Analysis (PCA)
 
-The following section contains a function to perform principal Component Analysis on any kind of Data. The function is first defined and then applied to the image data and its results are compared to the base R pca function.
+The following section contains a function to perform Principal Component Analysis (PCA) on any kind of Data. The function is first defined and then applied to the image data and its results are compared to the base R pca function.
+
+This function is created using the following formula. 
+$$\Sigma_{s}= \frac{1}{n-1}GG^{t}$$
+Where G is the matrix of features less the mean of each column.
+The eigen vectors of this new matrix are the same eigen vector of the original matrix and if you multiply $G^{t}\cdot eigen\_vector$ you will get the eigen vector of the typical matrix.
 
 ```{r}
 ### PCA Function
@@ -202,47 +186,11 @@ PCA.fun = function(X,matrix_bool = F){
   return(list("Eigen Vector"= eig_vec_sorted,"D"=D))
   }
 ```
-This function is created using the following formula. 
-$$\Sigma_{s}= \frac{1}{n-1}GG^{t}$$
-Where G is the matrix of features less the mean of each column.
-The eigen vectors of this new matrix are the same eigen vector of the original matrix and if you multiply $G^{t}\cdot eigen\_vector$ you will get the eigen vector of the typical matrix.
 
-```{r}
-folder_path = "Training"
-data_PCA = read_all_images(folder_path)
-print(system.time(PCA.fun(data_PCA)))
-PCA_result = PCA.fun(data_PCA)
-cumsum(PCA_result$D)
-data_PC = as.matrix(data_PCA[,1:108000])%*%PCA_result$`Eigen Vector`[,1:40]
-print(system.time(prcomp(as.matrix(data_PCA[,1:108000]),scale. = T)))
-compare_pc = prcomp(as.matrix(data_PCA[,1:108000]),scale. = T)
-print(cumsum(compare_pc$sdev^2)/sum(compare_pc$sdev^2))
 
-```
+## Fisher Discriminant Analysis (FDA)
 
-If we compare the PCA function we created with prcomp(), we can see a significant difference in execution time and system resource usage. This is because the base function assumes that $n >> p$, but for the type of data we are working with, this approach is less optimal. Instead, we use a function that is optimized for cases where $n <<p$.
-
-When comparing the eigenvalues, our custom function required fewer eigenvalues to achieve the same explained variance.
-
-```{r}
-df <- data.frame(
-  Components = 1:length(PCA_result$D),
-  CumulativeVariance = cumsum(PCA_result$D)
-)
-
-# Plot the cumulative explained variance
-ggplot(df, aes(x = Components, y = CumulativeVariance)) +
-  geom_line() +
-  geom_point() +
-  labs(title = "Cumulative Explained Variance",
-       x = "Principal Components",
-       y = "Cumulative Variance Explained") +
-  theme_minimal()
-```
-
-In the graph you can see that if we want to get close to 90% of the variance of the data we only need to get 25 principal components.
-
-# Fisher Discriminant Analysis (FDA)
+This function implements Fisher Discriminant Analysis to find a projection matrix $P$ that maximizes class separability. It computes the within-class scatter matrix $S_{w}$ and between-class scatter matrix $ S_{b} $, then solves the generalized eigenvalue problem for $ S_{w}^{-1} S_{b} $. Since $ S_{w}$ can be singular or ill-conditioned, direct inversion is unstable. Instead, we use Cholesky decomposition $ S_{w} = L L^{T} $ to transform the problem into a standard eigenvalue decomposition, ensuring numerical stability. The function returns the mean vector $ \mu$, the projection matrix $ P $ (top eigenvectors), and the variance explained $D$ by each discriminant.
 
 ```{r}
 FDA.fun = function(data, labels, reg = 1e-6) {
@@ -302,57 +250,12 @@ FDA.fun = function(data, labels, reg = 1e-6) {
 ```
 
 
-This function implements Fisher Discriminant Analysis to find a projection matrix $P$ that maximizes class separability. It computes the within-class scatter matrix $S_{w}$ and between-class scatter matrix $ S_{b} $, then solves the generalized eigenvalue problem for $ S_{w}^{-1} S_{b} $. Since $ S_{w}$ can be singular or ill-conditioned, direct inversion is unstable. Instead, we use Cholesky decomposition $ S_{w} = L L^{T} $ to transform the problem into a standard eigenvalue decomposition, ensuring numerical stability. The function returns the mean vector $ \mu$, the projection matrix $ P $ (top eigenvectors), and the variance explained $D$ by each discriminant.
+## Test/Train Split
+
+The "train_test_split" function splits a dataset into training and testing sets based on a specified ratio.
 
 ```{r}
-pca_result <- PCA.fun(data_PCA)
-
-# Get results and get PC's that explain 95% Variance
-eig_vecs <- pca_result$"Eigen Vector"
-cumulative_variance <- cumsum(pca_result$D)
-num_components <- which(cumulative_variance >= 0.95)[1]
-
-# Project data onto selected PCs
-data_reduced <- as.matrix(data_PCA %>% dplyr::select(-c("Label","ID"))) %*% eig_vecs[, 1:num_components]
-
-
-result_FDA = FDA.fun(data_reduced,data_PCA$Label)
-
-data_reduced_FDA <-result_FDA$transform_data
-df_plot <- data.frame(result_FDA$transform_data, labels = result_FDA$labels)
-ggplot(df_plot, aes(x = X1, y = X2, color = labels)) + geom_point()
-
-```
-
-```{r}
-df_FDA <- data.frame(
-  Components = 1:length(result_FDA$D),
-  CumulativeVariance = cumsum(result_FDA$D)
-)
-
-# Plot the cumulative explained variance
-ggplot(df_FDA, aes(x = Components, y = CumulativeVariance)) +
-  geom_line() +
-  geom_point() +
-  labs(title = "Cumulative Explained Variance",
-       x = "Fisher Discriminants",
-       y = "Cumulative Variance Explained") +
-  theme_minimal()
-```
-If you take the first 10 fisher discriminate you can get 90% of the reduce (PCA) matrix variability explain.
-```{r}
-system.time(FDA.fun(data_reduced,data_PCA$Label))
-system.time( MASS::lda(data_reduced,data_PCA$Label))
-```
-We obtain the same results meaning that or function avoid problems and can be use as the one in MASS library.
-
-
-## Functions
-
-### Test/Train Split
-
-```{r}
-# TODO: Test/Train Split
+### Train/Test Split
 train_test_split <- function(data, train_ratio = 0.8, seed = NULL) {
   if (!is.null(seed)) {
     set.seed(seed)
@@ -367,7 +270,10 @@ train_test_split <- function(data, train_ratio = 0.8, seed = NULL) {
 }
 ```
 
-### KNN 
+## Distance Metrics
+
+In the following chunk, two distance metrics are defined.
+
 
 ```{r}
 ### Distances
@@ -384,26 +290,38 @@ manhattan_distance <- function(x, y) {
 
 ```
 
+## Classificaion Threshholds
+
+The function "estimate_thresholds" calculates thresholds for a number of groups per group and returns the threshholds with their corresponding group ID. The function that is used for calculation is interchangeable, with one defined as the quantile of the empirical distribution of the given data.
+
 ```{r}
 ### Threshhold functions
 
-## Criterion Functions
-# precentile threshold function
-estimate_threshold_via_percentile <- function(data, percentile = 0.90) {
-  dist_1 <- as.matrix(dist(data))
+## precentile threshold function
+estimate_threshold_via_percentile <- function(data, percentile = 0.90, distance_metric = "euclidean") {
+  if (distance_metric == "euclidean") {
+    dist_1 <- as.matrix(dist(data, method = "euclidean"))
+  } else if (distance_metric == "manhattan") {
+    dist_1 <- as.matrix(dist(data, method = "manhattan"))
+  } else {
+    stop("Invalid method. Choose either 'euclidean' or 'manhattan'.")
+  }
+  
   threshold <- quantile(dist_1[upper.tri(dist_1)], percentile)
   return(threshold)
 }
 
 ## generate Treshhold functions
-estimate_thresholds <- function(train_data, estimate_func, percentile) {
+estimate_thresholds <- function(train_data, estimate_func, percentile, distance_metric) {
   thresholds <- numeric()
   train_data_ids_unique <- unique(train_data[, ncol(train_data)])
   
   for (id in train_data_ids_unique) {
     train_data_grouped <- train_data[train_data[, ncol(train_data)] == id, , drop = FALSE]
     if (nrow(train_data_grouped) > 1) {
-      thresholds[id] <- estimate_func(train_data_grouped[,-ncol(train_data_grouped)],percentile = percentile)
+      thresholds[id] <- estimate_func(train_data_grouped[,-ncol(train_data_grouped)],percentile = percentile,distance_metric = distance_metric)
+    } else{ # drop as to not enough data to set threshold
+      train_data_ids_unique =  setdiff(train_data_ids_unique, id)
     }
   }
   
@@ -414,6 +332,9 @@ estimate_thresholds <- function(train_data, estimate_func, percentile) {
 }
 ```
 
+## KNN Classifier Function
+
+The "knn_classifier" function classifies test data based on the k-nearest neighbors (KNN) algorithm, using a specified distance metric and thresholds for each group. It computes distances between each test data point and all training data points, then assigns the most frequent label among the k-nearest neighbors if the distance threshold is met. If no threshold is met, the test data point is assigned to a default group. It return a id based classification and a "binary classification" which only considers weather the to be classified element is within the data base or not (e.g. if it meets the treshhold or not).
 
 ```{r}
 ### KNN Classifier
@@ -443,6 +364,7 @@ knn_classifier = function(test_data, train_data, thresholds, dist_metric = "eucl
         return(manhattan_distance(test_row, train_row))
       }
     })
+    
     names(distances) <- train_data_ids
     
     ### Classification
@@ -450,7 +372,7 @@ knn_classifier = function(test_data, train_data, thresholds, dist_metric = "eucl
     # fot all groups IDs, check if threshhold is passed for at least one
     for (train_ids in names(thresholds)) { 
       # perform knn as soon as distance threshhod is passed for one
-      if (any(distances[names(distances) == train_ids] < thresholds[train_ids])) { 
+      if (any(distances[names(distances) == train_ids] < thresholds[train_ids])) {
         if (knn_bool){
           
           k_neighbors <- order(distances)[1:min(k, length(distances))] # with k >= training points
@@ -481,6 +403,9 @@ knn_classifier = function(test_data, train_data, thresholds, dist_metric = "eucl
 }
 ```
 
+## Score Classification
+
+The score function calculates performance metrics for both ID classification and binary classification. It computes the match and fail rates for ID classification, and for binary classification, it calculates the false positive and false negative rates using a confusion matrix.
 
 ```{r}
 ### Scoring
@@ -526,6 +451,9 @@ score <- function(df_id,df_binary) {
 }
 ```
 
+## KNN Pipeline
+
+The classification_pipeline function performs a full start to finish processes for classification. To do so, it processes training and test data for classification, optionally applying PCA or FDA for dimensionality reduction. It replaces IDs in the test data that are not present in the training data with "0", estimates classification thresholds, and runs a KNN classifier. The function then calculates and returns classification results, including match rates and binary classification error rates. This pipeline provides a comprehensive workflow for preparing data, running classification, and evaluating performance.
 
 ```{r}
 ### Pipeline
@@ -591,7 +519,7 @@ classification_pipeline <- function(train_data,
   print("######## Estimate Threshholds ########")
 
   # Estimate thresholds
-  thresholds <- estimate_thresholds(train_data, estimate_func = estimate_func, percentile = percentile)
+  thresholds <- estimate_thresholds(train_data, estimate_func = estimate_func, percentile = percentile,distance_metric = dist_metric)
   
   # Prepare test data
   true_test_ids <- c(test_data[, ncol(test_data), drop = FALSE])
@@ -630,8 +558,9 @@ classification_pipeline <- function(train_data,
 
 ```
 
+## K-Fold Cross Validation
 
-
+The knn_k_fold_cv function performs K-fold cross-validation on a dataset using a KNN classifier, with optional PCA or FDA for dimensionality reduction. It splits the data into training and testing sets for each fold, runs the classification pipeline, and stores the results for each fold. It returns the average scores across all folds.
 
 ```{r}
 ### K fold Cross Validation
@@ -694,17 +623,18 @@ knn_k_fold_cv <- function(data,
   
   # Print all average metrics
   if (print_bool){
-    print("Average scores across all folds:")
-    print(avg_scores)
+    cat("Average scores across all folds:")
+    cat(avg_scores)
   }
 
   return(avg_scores)#, scores_by_fold=all_results))
 }
-
-# Example of using the function
-#results <- k_fold_cv(data_matriz, k_CV = 4)
 ```
 
+
+## KNN Grid Search Optimization
+
+The CV_grid_search function performs a grid search over specified hyperparameters for a KNN classifier, using K-fold cross-validation to evaluate each combination. It iterates over different values of knn_k, percentile, and dist_metric, storing the average performance metrics for each combination. Finally, it identifies and prints the best hyperparameters based on classification match rate and binary false negative rate, returning the results as a data frame along with the best parameters.The parameters correspond to different parts of the classification process, e.g. percentile_values correspond to the chosen treshold (e.g binary classification) and k_knn to the id based classification, while the distance metric affects both. Therefore, they either use the binary classification scores or the id match rate as metrics for the optimization. 
 
 ```{r}
 CV_grid_search <- function(data, 
@@ -764,20 +694,24 @@ CV_grid_search <- function(data,
   best_params_knn <- results_df[which.max(results_df$classification_match_rate_mean), ]
   best_params_binary <- results_df[which.min(results_df$binary_false_negative_rate_mean), ]
   
+  # Print best hyperparameters in a table
   print("#################### Best Hyperparameters ####################")
-  print(paste("Distance Metric: ", best_params_knn$dist_metric))
-  print(paste("Percentile for Quantile Threshold: ", best_params_binary$percentile))
-  print(paste("KNN K nearest neighbors: ", best_params_knn$knn_k))
+  best_params <- data.frame(
+    Metric = c("Distance Metric", "Percentile for Quantile Threshold", "KNN K nearest neighbors"),
+    Value = c(best_params_knn$dist_metric, best_params_binary$percentile, best_params_knn$knn_k)
+  )
+  
+  table_with_best_params = knitr::kable(best_params, col.names = c("Parameter", "Value"), caption = "Best Hyperparameters")
 
   return(list(results_df = results_df, 
-              best_params_knn = best_params_knn, 
-              best_params_binary = best_params_binary))
+              table_with_best_params = table_with_best_params))
 }
 ```
 
 
+## Start-to-finish Classification 
 
-
+The "knn_classifier_full" function is a container for the full classification pipeline with the added step of loading train and test data added based on path to corresponding directories. It is designed for the final application of the classification to test or new data.
 
 ```{r}
 ### Predict for new data
@@ -838,191 +772,318 @@ knn_classifier_full <- function(path_train,
 
 # Run Codes
 
+The following section now contains the excecution of the previous codes leading towards optimal classification. 
+
 ## Load Data
+
+We start by loading the data and doing some basic data manipulation. 
+
 ```{r}
-folder_path = "Training_alpha"
+### load data
+folder_path = "Training"
 data = read_all_images(folder_path)
 
 labels <- data$Label  
 image_names = data$ID
 
-data = data %>% dplyr::select(-ID)
-
-data_matriz = as.matrix(data)
-data_matriz <- apply(data_matriz, 2, as.numeric)
+# turn into matrix for some application
+data_asmatrix  = as.matrix(data %>% dplyr::select(-ID))
+data_asmatrix <- apply(data_asmatrix, 2, as.numeric)
 ```
 
 
-## Distance Histograms
+## Classification on Raw Data (Part-A-1)
+
+We start out by attempting to classify on the raw data. To get a feeling for the distances between the images of the same person, we plot the KDE of the distributions of the pairwise distances for both within-class-distance (ID's 1-m) and the outside of class distances (ID=0), e.g. distances between all elements in one class with all elements of all other classes but not with elements from its own class. The result shows a somewhat well divide between Out-of-class distances and In-Class Distances, with however some In-Class Distances moving in similar distance value range as the Out-of-Class Distances. This shows that the binary classification will probably suffer from some missclassifications. 
 
 ```{r}
-# Run
-for (distance_metric in c("euclidean", "manhattan")) {
-  hist = distance_distributions(data_matriz, distance_metric = distance_metric)
-  print(hist)
-}
-
+distance_distributions(data_asmatrix, distance_metric = "euclidean")
 ```
 
-
-
-## Run KNN
-
-### Run KNN on Raw Data
+With no other Steps required, we directly run the classification algorithm, using the implemented Cross-Validation grid search algorithm to first find optimal hyperparameters. According to the Cross Validation, the euclidean distance with a Quantile Threshhold of .95 and 3 nearest neighbors are optimal.
 
 ```{r}
 ### Run grid Search to optimize Hyperparameters
-CV_grid_search_result <- CV_grid_search(data_matriz,
+# WARNING: This code takes approx 20 min to excecute
+CV_grid_search_result_RAW <- CV_grid_search(data_asmatrix,
                                         k_CV = 5,
-                                        knn_k_values = c(3, 4, 5), 
+                                        knn_k_values = c(3,4,5), 
                                         percentile_values = c(0.9, 0.95), 
                                         dist_metrics = c("euclidean", "manhattan"),
-                                        expl_var_pca = 0.95,
-                                        expl_var_fda = 0.95,
                                         knn_bool = T)
 
-
-#print(CV_grid_search_result$results_df)
-print(CV_grid_search_result$best_params_knn)
-print(CV_grid_search_result$best_params_binary)
+print(CV_grid_search_result_RAW$table_with_best_params)
 
 ```
 
-
+Having found the optimal hyperparameters, we rerun the crossvalidation to get the expected performance under these hyperparameters. 
 
 
 ```{r}
-
+### Run CV for optimal parameters to get scores
 k_CV = 5
 folds <- sample(1:k_CV, nrow(data_matriz), replace = TRUE)
-avg_scores <- knn_k_fold_cv(data_matriz,
+avg_scores_CV_raw <- knn_k_fold_cv(data_matriz,
                             folds,
                             k_CV = k_CV,
                             estimate_func = estimate_threshold_via_percentile,
                             percentile = 0.9,
                             knn_k = 3,
                             dist_metric = "euclidean",
-                            expl_var_pca = 0.95,
-                            expl_var_fda = 0.95,
                             knn_bool = T,
                             pca_bool = F,
                             fda_bool = F)
 
-avg_scores
+avg_scores_CV_raw
 
 ```
 
 
-### Run KNN on PCA Data
+## Classification on PCA-Data (Part-A-2)
+
+To now perform classification on the dimension reduced Data via PCA, we first need to apply the PCA. We start by applying the PCA function defined in the previous chapter and validate the results using the base R prcomp function.
+
+If we compare the PCA function we created with prcomp(), we can see a significant difference in execution time and system resource usage. This is because the base function assumes that $n >> p$, but for the type of data we are working with, this approach is less optimal. Instead, we use a function that is optimized for cases where $n <<p$.
+
+```{r}
+### Run manual and baseR PCA 
+print(system.time(PCA.fun(data)))
+PCA_result = PCA.fun(data)
+data_PC = data_asmatrix[,-ncol(data_asmatrix)] %*% PCA_result$"Eigen Vector"[,1:20]
+
+print(system.time(prcomp(data_asmatrix[,-ncol(data_asmatrix)],scale. = T)))
+compare_pc = prcomp(data_asmatrix[,-ncol(data_asmatrix)],scale. = T)
+print(cumsum(compare_pc$sdev^2)/sum(compare_pc$sdev^2))
+
+```
+When comparing the eigenvalues, our custom function required fewer eigenvalues to achieve the same explained variance. In the graph you can see that if we want to get close to 90% of the variance of the data we only need to get 25 principal components.
+
+```{r}
+df <- data.frame(
+  Components = 1:length(PCA_result$D),
+  CumulativeVariance = cumsum(PCA_result$D)
+)
+
+# Plot the cumulative explained variance
+ggplot(df, aes(x = Components, y = CumulativeVariance)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Cumulative Explained Variance",
+       x = "Principal Components",
+       y = "Cumulative Variance Explained") +
+  theme_minimal()
+```
+
+
+With the PCA successfully performed, corresponding to the plots shown above, we decide to fix 90 percent explained Variance as hyper parameter for the PCA and apply perform the projection of the data with the identified Principal Components.
+
 
 
 ```{r}
-### Run PCA & prep data
-pca_result <- PCA.fun(data_matriz, matrix_bool=T)
-
 # Get results and get PC's that explain 95% Variance
-eig_vecs <- pca_result$"Eigen Vector"
-cumulative_variance <- cumsum(pca_result$D)
+eig_vecs <- PCA_result$"Eigen Vector"
+cumulative_variance <- cumsum(PCA_result$D)
 num_components <- which(cumulative_variance >= 0.95)[1]
 
 # Project data onto selected PCs
-data_reduced <- as.matrix(data %>% dplyr::select(-Label)) %*% eig_vecs[, 1:num_components]
-data_reduced_labeled = cbind(data_reduced, labels)
+data_reduced_PCA <- data_asmatrix[,-ncol(data_asmatrix)] %*% eig_vecs[, 1:num_components]
+data_reduced_PCA_labeled = cbind(data_reduced_PCA, labels) 
 
 ```
 
+Using the PDA-reduced new data we can again plot the distance distributions and now see how the area of overlap between in-class-distances and out-of-class distances was already decreased by the PCA, optentially improving classification results. 
+
+```{r}
+distance_distributions(data_reduced_PCA_labeled, distance_metric = "euclidean")
+```
+
+To then proceed with classification, we again identify the optimal hyperparameters using Cross Validation Grid search. The result show that againthe euclidean distance with a Quantile Threshhold of .95 and 3 nearest neighbors are optimal.
 
 ```{r}
 ### Run grid Search to optimize Hyperparameters
-CV_grid_search_result <- CV_grid_search(data_reduced_labeled,
+CV_grid_search_result_PCA <- CV_grid_search(data_reduced_PCA_labeled,
                                         k_CV = 5,
                                         knn_k_values = c(3, 4, 5), 
                                         percentile_values = c(0.9, 0.95, 0.99), 
                                         dist_metrics = c("euclidean", "manhattan"))
 
-#print(CV_grid_search_result$results_df)
-print(CV_grid_search_result$best_params_knn)
-print(CV_grid_search_result$best_params_binary)
+
+print(CV_grid_search_result_PCA$table_with_best_params)
 
 ```
 
-
-
-
-### Run KNN on FDA + PCA Data
+And also, like previous, we perform a last CV with the as optimal determined parameters.
 
 ```{r}
-### Run FDA
-result_FDA = FDA.fun(data_reduced,labels)
+### Run CV for optimal parameters to get scores
+k_CV = 5
+folds <- sample(1:k_CV, nrow(data_reduced_PCA_labeled), replace = TRUE)
+avg_scores_CV_PCA <- knn_k_fold_cv(data_reduced_PCA_labeled,
+                            folds,
+                            k_CV = k_CV,
+                            estimate_func = estimate_threshold_via_percentile,
+                            percentile = 0.9,
+                            knn_k = 3,
+                            dist_metric = "euclidean",
+                            knn_bool = T,
+                            pca_bool = F,
+                            fda_bool = F)
 
+avg_scores_CV_PCA
+```
+
+
+## Classification on FDA + PCA Data (Part B)
+
+As last variation in this assignment, we apply Fisher Discriminant Analysis to the already with the PCA reduced Data. We use the function defined above and apply it to the PCA reduced data. The output of the two first dimensions can be plotted as shown in the following chunk, already giving a nice separation between classes in most cases
+
+```{r}
+
+
+result_FDA = FDA.fun(data_reduced_PCA,labels)
+
+data_reduced_FDA <-result_FDA$transform_data
+df_plot <- data.frame(result_FDA$transform_data, labels = result_FDA$labels)
+ggplot(df_plot, aes(x = X1, y = X2, color = labels)) + geom_point()
+
+```
+
+Taking the first 10 fisher discriminate you can get 90% of the reduce (PCA) matrix variability explain as seen below in the comulative variance plot.
+
+```{r}
+df_FDA <- data.frame(
+  Components = 1:length(result_FDA$D),
+  CumulativeVariance = cumsum(result_FDA$D)
+)
+
+# Plot the cumulative explained variance
+ggplot(df_FDA, aes(x = Components, y = CumulativeVariance)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Cumulative Explained Variance",
+       x = "Fisher Discriminants",
+       y = "Cumulative Variance Explained") +
+  theme_minimal()
+```
+
+Looking at the performance of the FDA, we find the MASS package based implementation to be more efficient. 
+
+```{r}
+system.time(FDA.fun(data_reduced_PCA,labels))
+system.time( MASS::lda(data_reduced_PCA,labels))
+```
+
+With the FDA performed successfully, we again choose 95 % of explained Variance as hyperparameter and proceed with the further dimension reduced data. 
+
+```{r}
 # select discriminants according to explained variance
 cumulative_variance_FDA <- cumsum(result_FDA$D)
 num_components_fda <- which(cumulative_variance_FDA >= 0.95)[1]
 
 data_reduced_fda = result_FDA$transform_data[,1:num_components_fda]
-data_reduced_fda = cbind(data_reduced_fda,labels)
+data_reduced_fda_labeld = cbind(data_reduced_fda,labels)
 ```
 
+We again can plot the distribtions of the distances distances as shown below. As is very apparent, there is now a near complete separation between In-Class-Distances and Out-Of-Class Distances (ID=0).
+
+```{r}
+distance_distributions(data_reduced_fda_labeld, distance_metric = "euclidean")
+```
+
+And to find optimal hyperparameters, we proceed with CV grid search to again find the euclidean distance with a Quantile Threshhold of .95 and 3 nearest neighbors optimal.
 
 ```{r}
 ### Run grid Search to optimize Hyperparameters
-CV_grid_search_result <- CV_grid_search(data_reduced_fda,
+CV_grid_search_result_FDA <- CV_grid_search(data_reduced_fda_labeld,
                                         k_CV = 5,
                                         knn_k_values = c(3, 4, 5), 
                                         percentile_values = c(0.9, 0.95), 
                                         dist_metrics = c("euclidean", "manhattan"))
 
-#print(CV_grid_search_result$results_df)
-print(CV_grid_search_result$best_params_knn)
-print(CV_grid_search_result$best_params_binary)
+print(CV_grid_search_result_FDA$table_with_best_params)
+
+```
+```{r}
+k_CV = 5
+folds <- sample(1:k_CV, nrow(data_reduced_fda_labeld), replace = TRUE)
+avg_scores_CV_FDA <- knn_k_fold_cv(data_reduced_fda_labeld,
+                            folds,
+                            k_CV = k_CV,
+                            estimate_func = estimate_threshold_via_percentile,
+                            percentile = 0.9,
+                            knn_k = 3,
+                            dist_metric = "euclidean",
+                            knn_bool = T,
+                            pca_bool = F,
+                            fda_bool = F)
+
+avg_scores_CV_FDA
 ```
 
 
-### Compare Results
+## Compare Results
 
-TODO: Write stuff
+Comparing the three approaches, we find the FDA/PCA approach with hyperparameters distance metric Euclidian distance, Quantile Threshhold of .95, 3 nearest neighbors optimal to yield the best scores across all reviewed classification approaches. Looking at how well the data was clustered this is in line with what could be expected. Furthermore, both PCA and FDA/PCA approaches have significantly improved execution times compared to running classification purely on the raw data. The Pipeline PDA->FDA->Classification should thus be chosen for the classification task.  
+
+```{r}
+comparison_table <- data.frame(
+  Metric = names(avg_scores_CV_raw),
+  CV_raw = unlist(avg_scores_CV_raw),
+  CV_PCA = unlist(avg_scores_CV_PCA),
+  CV_PCA_FDA = unlist(avg_scores_CV_FDA)
+)
+
+# Print table
+print(comparison_table)
+
+# Melt for ggplot
+df_melted <- melt(comparison_table, id.vars = "Metric", variable.name = "Model", value.name = "Value")
+
+# Create individual plots
+plots <- lapply(unique(df_melted$Metric), function(metric) {
+  ggplot(df_melted[df_melted$Metric == metric, ], aes(x = Model, y = Value, fill = Model)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    ggtitle(metric) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    scale_fill_brewer(palette = "Set2")
+})
+
+# Arrange in a 2x2 grid
+print(grid.arrange(grobs = plots, ncol = 2))
+```
 
 
 
-## Run KNN for new Data on best Combination
+
+
+# Run KNN for new Data with optimal hyperparametrs
+
+####################################### RUN THIS FOR EVALUATION ####################################### 
+
+The following code chunk contains a function specifically designed for seamless classification. The only required changes are to modify the paths to directories containing training and testing data. The remaining hyperparameters have been already set up according to the optimal settings found in the previous analysis.
 
 ```{r}
 ### Predict for new Data
-results = knn_classifier_full( path_train = "Training_alpha", 
-                               path_test = "Test_alpha",
+classification_result = knn_classifier_full( path_train = "Training_alpha", # <------------ Modify
+                               path_test = "Test_alpha", # <----------------- Modify
                                dist_metric = 'euclidean',
                                knn_k = 3,
                                estimate_func = estimate_threshold_via_percentile,
-                               percentile = 0.9,
+                               percentile = 0.95,
                                expl_var_pca = 0.95,
                                expl_var_fda = 0.95,
                                pca_bool = T,
                                fda_bool = T)
 
-results
+classification_result$classification # Returns Dataframe with True vs Predicted
+
+# Optional: Score
+classification_scores = score(classification_result$classification,classification_result$classification_binary)
+classification_scores
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Compare Results
 
 
 
