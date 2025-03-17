@@ -267,12 +267,15 @@ EM_GMM_1D = function(X, K, max_iter = 100, tol = 1e-6) {
       gamma[, k] = pi_k[k] * dnorm(X, mean = mu[k], sd = sqrt(sigma[k]))
     }
     gamma = gamma / rowSums(gamma)
+  
+
     
     # M-step: Update parameters
     Nk = colSums(gamma)  # Effective number of points in each cluster
     pi_k = Nk / N  # Update mixing coefficients
     mu = colSums(gamma * X) / Nk  # Update means
-    sigma = colSums(gamma * (X - mu)^2) / Nk  # Update variances
+    sigma = sapply(1:K, function(k) sum(gamma[, k] * (X - mu[k])^2) / Nk[k])
+    
     
     # Compute new log-likelihood
     new_logL = log_likelihood()
@@ -303,6 +306,7 @@ EM_GMM = function(X, K, max_iter = 100, tol = 1e-6) {
   
   N = nrow(X)  # Number of data points
   D = ncol(X)  # Data dimensions
+  
   
   params = initialize_em_parameters(X, K)
   mu = params$mu
@@ -386,7 +390,7 @@ X_2D = rbind(
 result_2D = EM_GMM(X_2D, K = 2)
 
 # Plot the clustering results
-plot_1D_2D_3D(X_2D, result_2D$gamma, result_2D$mu, result_2D$sigma)
+plot_1D_2D_3D(X_2D, result_2D$gamma, t(result_2D$mu), result_2D$sigma)
 ```
 
 #3D 
@@ -415,7 +419,7 @@ sigma_est = em_results$sigma
 # -----------------------
 # STEP 3: Plot using plot_GMM()
 # -----------------------
-plot_1D_2D_3D(X_3D, gamma_est, mu_est, sigma_est)
+plot_1D_2D_3D(X_3D, gamma_est, t(mu_est), sigma_est)
 ```
 
   
