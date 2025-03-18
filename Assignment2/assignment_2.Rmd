@@ -65,7 +65,7 @@ get_ellipse <- function(mu, sigma, npoints = 100) {
   angles <- seq(0, 2 * pi, length.out = npoints)
   circle <- cbind(cos(angles), sin(angles))  # Unit circle
   chol_decomp <- chol(sigma)  # Cholesky decomposition of covariance
-  ellipse_points <- circle %*% chol_decomp  # Transform to Gaussian shape
+  ellipse_points <- circle %*% t(chol_decomp)  # Transform to Gaussian shape
   ellipse_points <- sweep(ellipse_points, 2, mu, "+")  # Shift to mean
   return(as.data.frame(ellipse_points))
 }
@@ -100,6 +100,7 @@ plot_1D_2D_3D = function(X, gamma, mu, sigma) {
         ellipse_data <- get_ellipse(mu[k,], sigma[,,k])
         geom_path(data = ellipse_data, aes(x = V1, y = V2), color = "black", linetype = "dashed")
       }) +
+      geom_density_2d()+
       
       labs(title = "2D Gaussian Mixture Clustering", x = "X", y = "Y") +
       theme_minimal()
@@ -316,6 +317,9 @@ EM_GMM = function(X, K, max_iter = 100, tol = 1e-6) {
   gamma = matrix(0, N, K)  # Responsibility matrix
   log_likelihood_values = numeric(max_iter)  # Store log-likelihood values
   
+  X <- scale(X)
+  mu <- scale(mu)
+  
   log_likelihood = function() {
     sum(log(rowSums(sapply(1:K, function(k) {
       pi_k[k] * dmvnorm(X, mean = as.numeric(mu[k, , drop = FALSE]), sigma = sigma[, , k])
@@ -324,6 +328,8 @@ EM_GMM = function(X, K, max_iter = 100, tol = 1e-6) {
   
   logL = log_likelihood()
   log_likelihood_values[1] = logL  
+  
+  print(paste("2",logL))
   
   for (iter in 2:max_iter) {
     for (k in 1:K) {
@@ -347,6 +353,8 @@ EM_GMM = function(X, K, max_iter = 100, tol = 1e-6) {
     new_logL = log_likelihood()
     log_likelihood_values[iter] = new_logL  
     
+    print(paste("3", new_logL, logL))
+    
     if (abs(new_logL - logL) < tol) {
       message("Converged at iteration ", iter)
       log_likelihood_values = log_likelihood_values[1:iter]  
@@ -355,6 +363,7 @@ EM_GMM = function(X, K, max_iter = 100, tol = 1e-6) {
     logL = new_logL
   }
   
+
   return(list(mu = mu, sigma = sigma, pi_k = pi_k, gamma = gamma, log_likelihood = log_likelihood_values))
 }
 ```
@@ -390,7 +399,7 @@ X_2D = rbind(
 result_2D = EM_GMM(X_2D, K = 2)
 
 # Plot the clustering results
-plot_1D_2D_3D(X_2D, result_2D$gamma, t(result_2D$mu), result_2D$sigma)
+plot_1D_2D_3D(scale(X_2D), result_2D$gamma, t(result_2D$mu), result_2D$sigma)
 ```
 
 #3D 
@@ -419,7 +428,7 @@ sigma_est = em_results$sigma
 # -----------------------
 # STEP 3: Plot using plot_GMM()
 # -----------------------
-plot_1D_2D_3D(X_3D, gamma_est, t(mu_est), sigma_est)
+plot_1D_2D_3D(scale(X_3D), gamma_est, t(mu_est), sigma_est)
 ```
 
   
@@ -440,5 +449,206 @@ result = EM_GMM(img_reshaped, K = 5)
 reconstruct_image("C:/Users/flore/Desktop/git/Statistical_learning/Test_alpha/20BT.jpg", result)
 
 ```
+
+
+```{r}
+### Read Data functions
+read_all_images <- function(folder_path) {
+  image_files <- list.files(folder_path, full.names = TRUE, pattern = "\\.(jpg|png|jpeg|tiff|bmp)$", ignore.case = TRUE)
+  
+  # Sort filenames
+  image_files <- mixedsort(image_files)  
+  
+  # Extract labels from filenames
+  extract_label <- function(filename) {
+    base_name <- tools::file_path_sans_ext(basename(filename))  
+    label <- gsub("[^0-9]", "", base_name)  # Extract numeric part
+    return(label)
+  }
+  extract_filename <- function(filepath) {
+    return(basename(filepath))
+  }
+  read_data <- function(image_path) {
+    img <- readImage(image_path)  
+    red_aux   <- as.vector(img[,,1])
+    green_aux <- as.vector(img[,,2])
+    blue_aux  <- as.vector(img[,,3])
+    
+    # Combine all channels into a single row
+    img_vector <- c(red_aux, green_aux, blue_aux)
+    
+    return(as.data.frame(t(img_vector)))  # Transpose to make it a row
+  }
+  
+  image_list <- lapply(image_files, function(file) {
+    img_data <- read_data(file)  
+    img_data$Label <- extract_label(file)
+    img_data$ID <- extract_filename(file) 
+    return(img_data)
+  })
+  
+  ax <- do.call(rbind, image_list)
+  return(ax)
+}
+```
+
+```{r}
+### PCA Function
+PCA.fun = function(X,matrix_bool = F){
+  if (!matrix_bool){
+    X = X %>% dplyr::select(-c("Label","ID"))
+    print(dim(X))
+    X = as.matrix(X)
+  } else{
+    X = X[,-ncol(X)]
+    print(dim(X))
+  }
+  
+  n = nrow(X)
+  mu = colMeans(X)
+  # center data
+  G = sweep(X, 2, mu, FUN = "-")
+  # Compute the covariance matrix
+  cov_matrix =(1/(n-1))*(G %*% t(G))
+  ## Calculate Eigenvalues and Eigenvectors and sort
+  eig = eigen(cov_matrix)
+  eig_val = eig$values
+  eig_vec = eig$vectors
+  ei_vec_large = t(G)%*%eig_vec
+  # sort
+  sort_index <- order(eig_val, decreasing = TRUE)
+  eig_val_sorted <- eig_val[sort_index]
+  eig_vec_sorted <- ei_vec_large[, sort_index] 
+  #variability of each PC
+  D = eig_val_sorted/sum(eig_val_sorted)
+  return(list("Eigen Vector"= eig_vec_sorted,"D"=D))
+  }
+```
+
+
+
+
+```{r}
+
+library(gtools)
+library(EBImage)
+### load data
+folder_path = "Training_alpha"
+data = read_all_images(folder_path)
+
+labels <- data$Label  
+image_names = data$ID
+
+# turn into matrix for some application
+data_asmatrix  = as.matrix(data %>% dplyr::select(-ID))
+data_asmatrix <- apply(data_asmatrix, 2, as.numeric)
+```
+
+
+```{r}
+PCA_result = PCA.fun(data)
+eig_vecs <- PCA_result$"Eigen Vector"
+cumulative_variance <- cumsum(PCA_result$D)
+num_components <- which(cumulative_variance >= 0.95)[1]
+
+# Project data onto selected PCs
+data_reduced_PCA <- data_asmatrix[,-ncol(data_asmatrix)] %*% eig_vecs[, 1:num_components]
+data_reduced_PCA <- as.data.frame(apply(data_reduced_PCA, 2, as.numeric))
+data_reduced_PCA_labeled = cbind(data_reduced_PCA, labels) 
+
+
+```
+
+```{r}
+set.seed(123)
+em_pca_results = EM_GMM(as.matrix(data_reduced_PCA), K = 2)
+labels = apply(em_pca_results$gamma, 1, function(row) which.max(row))
+data_reduced_PCA_labeled$EM_labels = as.factor(labels)
+data_reduced_PCA_labeled
+```
+
+
+```{r}
+# Load necessary library
+library(ggplot2)
+
+# Scale V1, V2, and V3
+data_reduced_PCA_labeled_scaled <- data_reduced_PCA_labeled
+data_reduced_PCA_labeled_scaled[, c("V1", "V2", "V3")] <- scale(data_reduced_PCA_labeled[, c("V1", "V2", "V3")])
+
+
+# Create 3D plot using plotly
+plot_ly(data_reduced_PCA_labeled_scaled, 
+        x = ~V1, 
+        y = ~V2, 
+        z = ~V3, 
+        color = ~labels, 
+        colors = c("blue", "red"), 
+        type = 'scatter3d', 
+        mode = 'markers', 
+        marker = list(size = 5, opacity = 0.7)) %>%
+  layout(title = "3D PCA-Reduced Data Visualization", 
+         scene = list(xaxis = list(title = 'V1'),
+                      yaxis = list(title = 'V2'),
+                      zaxis = list(title = 'V3')))
+
+```
+
+
+
+
+
+```{r}
+library(plotly)
+library(MASS)  # for mvrnorm to generate multivariate normal data
+
+# Generate random samples from both Gaussians
+set.seed(42)
+samples1 = mvrnorm(n = 100, mu = em_pca_results$mu[1,], Sigma = em_pca_results$sigma[,,1])
+samples2 = mvrnorm(n = 100, mu = em_pca_results$mu[2,], Sigma = em_pca_results$sigma[,,2])
+
+# Create a dataframe with both Gaussian distributions
+data_gaussians <- data.frame(
+  V1 = c(samples1[,1], samples2[,1]),
+  V2 = c(samples1[,2], samples2[,2]),
+  V3 = c(samples1[,3], samples2[,3]),
+  labels = factor(c(rep(1, 100), rep(2, 100)))  # Labels for the two distributions
+)
+
+# Plot the Gaussians in 3D using V1, V2, and V3
+plot_ly() %>%
+  # Plot the first Gaussian (Gaussian 1)
+  add_trace(data = data_gaussians[data_gaussians$labels == 1, ], 
+            x = ~V1, y = ~V2, z = ~V3, 
+            color = I("darkblue"), type = 'scatter3d', 
+            mode = 'markers', marker = list(size = 6, opacity = 0.5),
+            name = "Samples from EM Gaussian 1") %>%
+  # Plot the second Gaussian (Gaussian 2)
+  add_trace(data = data_gaussians[data_gaussians$labels == 2, ], 
+            x = ~V1, y = ~V2, z = ~V3, 
+            color = I("darkred"), type = 'scatter3d', 
+            mode = 'markers', marker = list(size = 6, opacity = 0.5),
+            name = "Samples from EM Gaussian 2") %>%
+  add_trace(data = data_reduced_PCA_labeled_scaled[data_reduced_PCA_labeled_scaled$labels == 1, ], 
+            x = ~V1, y = ~V2, z = ~V3, 
+            color = I("orange"), type = 'scatter3d', 
+            mode = 'markers', marker = list(size = 6, opacity = 0.5),
+            name = "Image Points True ID = 1") %>%
+  add_trace(data = data_reduced_PCA_labeled_scaled[data_reduced_PCA_labeled_scaled$labels == 2, ], 
+            x = ~V1, y = ~V2, z = ~V3, 
+            color = I("purple"), type = 'scatter3d', 
+            mode = 'markers', marker = list(size = 6, opacity = 0.5),
+            name = "Image Points True ID = 2") %>%
+  layout(title = "3D Gaussian Distributions",
+         scene = list(
+           xaxis = list(title = 'V1'),
+           yaxis = list(title = 'V2'),
+           zaxis = list(title = 'V3')
+         ))
+
+
+```
+
+
 
 
