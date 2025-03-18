@@ -329,7 +329,6 @@ EM_GMM = function(X, K, max_iter = 100, tol = 1e-6) {
   logL = log_likelihood()
   log_likelihood_values[1] = logL  
   
-  print(paste("2",logL))
   
   for (iter in 2:max_iter) {
     for (k in 1:K) {
@@ -352,8 +351,6 @@ EM_GMM = function(X, K, max_iter = 100, tol = 1e-6) {
     
     new_logL = log_likelihood()
     log_likelihood_values[iter] = new_logL  
-    
-    print(paste("3", new_logL, logL))
     
     if (abs(new_logL - logL) < tol) {
       message("Converged at iteration ", iter)
